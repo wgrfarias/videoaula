@@ -9,7 +9,7 @@ export function Card({
   return (
     <div
       className={cn(
-        "rounded-2xl border border-ink-300/15 bg-white shadow-sm shadow-ink-900/5",
+        "rounded-2xl border border-ink-300/15 bg-surface shadow-sm shadow-ink-900/5",
         className
       )}
       {...props}
@@ -29,10 +29,10 @@ export function Badge({
   tone?: "brand" | "accent" | "neutral" | "success";
 }) {
   const tones = {
-    brand: "bg-brand-100 text-brand-700",
-    accent: "bg-accent-400/15 text-accent-600",
+    brand: "bg-brand-100 text-brand-700 dark:bg-brand-200/40 dark:text-brand-300",
+    accent: "bg-accent-400/15 text-accent-600 dark:text-accent-300",
     neutral: "bg-ink-900/5 text-ink-700",
-    success: "bg-emerald-100 text-emerald-700",
+    success: "bg-emerald-100 text-emerald-700 dark:bg-emerald-500/15 dark:text-emerald-300",
   } as const;
 
   return (

@@ -2,7 +2,7 @@ import { CourseCard } from "@/components/site/course-card";
 import { getCategories, getPublishedCourses } from "@/lib/data/courses";
 
 export const metadata = {
-  title: "Cursos | Português com a Camila",
+  title: "Cursos | Rumo à TI com Wagner Farias",
 };
 
 export default async function CoursesPage({
@@ -29,12 +29,12 @@ export default async function CoursesPage({
           name="q"
           defaultValue={q}
           placeholder="Pesquisar por palavra-chave"
-          className="w-full rounded-xl border border-ink-300/40 bg-white px-4 py-2.5 text-sm outline-none focus:border-brand-500 focus:ring-2 focus:ring-brand-500/20"
+          className="w-full rounded-xl border border-ink-300/40 bg-surface px-4 py-2.5 text-sm outline-none focus:border-brand-500 focus:ring-2 focus:ring-brand-500/20"
         />
         <select
           name="categoria"
           defaultValue={categoria ?? ""}
-          className="w-full rounded-xl border border-ink-300/40 bg-white px-4 py-2.5 text-sm outline-none focus:border-brand-500 focus:ring-2 focus:ring-brand-500/20 sm:w-56"
+          className="w-full rounded-xl border border-ink-300/40 bg-surface px-4 py-2.5 text-sm outline-none focus:border-brand-500 focus:ring-2 focus:ring-brand-500/20 sm:w-56"
         >
           <option value="">Todas as categorias</option>
           {categories.map((c) => (

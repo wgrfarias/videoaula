@@ -1,7 +1,7 @@
 import Link from "next/link";
 import { LoginForm } from "@/components/site/login-form";
 
-export const metadata = { title: "Entrar | Português com a Camila" };
+export const metadata = { title: "Entrar | Rumo à TI com Wagner Farias" };
 
 export default async function LoginPage({
   searchParams,

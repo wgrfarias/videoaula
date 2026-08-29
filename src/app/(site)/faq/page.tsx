@@ -1,6 +1,6 @@
-export const metadata = { title: "FAQ | Português com a Camila" };
+import { getSiteContent } from "@/lib/data/site-content";
 
-const FAQS = [
+const DEFAULT_FAQS = [
   {
     q: "Por quanto tempo tenho acesso ao curso?",
     a: "O prazo de acesso é exibido na página de cada curso e começa a contar a partir da confirmação da compra.",
@@ -19,12 +19,20 @@ const FAQS = [
   },
 ];
 
-export default function FaqPage() {
+export async function generateMetadata() {
+  const content = await getSiteContent();
+  return { title: `FAQ | ${content.siteName} ${content.siteTagline}` };
+}
+
+export default async function FaqPage() {
+  const content = await getSiteContent();
+  const faqs = content.faqItems.length > 0 ? content.faqItems : DEFAULT_FAQS;
+
   return (
     <div className="mx-auto max-w-3xl px-5 py-16">
       <h1 className="font-display text-3xl font-bold text-ink-900">Perguntas frequentes</h1>
       <div className="mt-8 divide-y divide-ink-900/10">
-        {FAQS.map((item) => (
+        {faqs.map((item) => (
           <div key={item.q} className="py-5">
             <p className="font-semibold text-ink-900">{item.q}</p>
             <p className="mt-2 text-sm text-ink-500">{item.a}</p>

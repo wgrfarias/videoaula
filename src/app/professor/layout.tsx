@@ -6,7 +6,7 @@ export default async function ProfessorLayout({ children }: { children: React.Re
 
   return (
     <DashboardShell
-      title="Painel da professora"
+      title="Painel de cursos"
       userName={user.name ?? user.email ?? ""}
       navItems={[
         { href: "/professor", label: "Visão geral", icon: "dashboard", exact: true },

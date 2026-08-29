@@ -117,7 +117,7 @@ export function AddLessonForm({
           onClick={() => setTab("existing")}
           className={cn(
             "flex items-center gap-1.5 rounded-full px-3 py-1.5",
-            tab === "existing" ? "bg-brand-600 text-white" : "bg-cream-200 text-ink-500"
+            tab === "existing" ? "bg-brand-600 text-white" : "bg-surface-alt text-ink-500"
           )}
         >
           <Library className="h-3.5 w-3.5" /> Reaproveitar vídeo
@@ -127,7 +127,7 @@ export function AddLessonForm({
           onClick={() => setTab("upload")}
           className={cn(
             "flex items-center gap-1.5 rounded-full px-3 py-1.5",
-            tab === "upload" ? "bg-brand-600 text-white" : "bg-cream-200 text-ink-500"
+            tab === "upload" ? "bg-brand-600 text-white" : "bg-surface-alt text-ink-500"
           )}
         >
           <UploadCloud className="h-3.5 w-3.5" /> Enviar novo vídeo
@@ -138,7 +138,7 @@ export function AddLessonForm({
         <form onSubmit={handleExistingSubmit} className="mt-3 grid gap-3 sm:grid-cols-[1fr_1fr_auto]">
           <select
             name="videoId"
-            className="w-full rounded-xl border border-ink-300/40 bg-white px-3 py-2 text-sm outline-none focus:border-brand-500 focus:ring-2 focus:ring-brand-500/20"
+            className="w-full rounded-xl border border-ink-300/40 bg-surface px-3 py-2 text-sm outline-none focus:border-brand-500 focus:ring-2 focus:ring-brand-500/20"
             defaultValue=""
           >
             <option value="" disabled>
@@ -163,7 +163,7 @@ export function AddLessonForm({
               name="file"
               type="file"
               accept="video/mp4,video/webm,video/ogg,video/quicktime"
-              className="block w-full rounded-xl border border-dashed border-ink-300/50 bg-cream-50 px-3 py-2 text-xs text-ink-500 file:mr-3 file:rounded-full file:border-0 file:bg-brand-600 file:px-3 file:py-1.5 file:text-xs file:font-semibold file:text-white"
+              className="block w-full rounded-xl border border-dashed border-ink-300/50 bg-surface px-3 py-2 text-xs text-ink-500 file:mr-3 file:rounded-full file:border-0 file:bg-brand-600 file:px-3 file:py-1.5 file:text-xs file:font-semibold file:text-white"
             />
           </div>
           <Button type="submit" disabled={loading} size="sm">

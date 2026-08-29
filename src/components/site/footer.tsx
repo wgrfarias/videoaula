@@ -1,30 +1,58 @@
 import Link from "next/link";
-import { GraduationCap } from "lucide-react";
+import { LogoMark, LogoLockup } from "@/components/site/logo";
+import type { LinkItem } from "@/lib/data/site-content";
 
-export function Footer() {
+export function Footer({
+  siteName,
+  siteTagline,
+  tagline,
+  navLinks,
+  socialLinks,
+}: {
+  siteName?: string;
+  siteTagline?: string;
+  tagline?: string;
+  navLinks?: LinkItem[];
+  socialLinks?: LinkItem[];
+}) {
   return (
-    <footer className="border-t border-ink-900/5 bg-cream-50">
+    <footer className="border-t border-ink-900/5 bg-surface">
       <div className="mx-auto flex max-w-6xl flex-col gap-8 px-5 py-12 md:flex-row md:justify-between">
         <div className="max-w-sm">
-          <div className="flex items-center gap-2 font-display text-lg font-bold text-ink-900">
-            <span className="flex h-8 w-8 items-center justify-center rounded-full bg-brand-600 text-white">
-              <GraduationCap className="h-4 w-4" />
-            </span>
-            Português com a Camila
+          <div className="flex items-center gap-2.5">
+            <LogoMark className="h-9 w-9 shrink-0" />
+            <LogoLockup className="leading-tight text-ink-900" name={siteName} tagline={siteTagline} />
           </div>
-          <p className="mt-3 text-sm text-ink-500">
-            Cursos em vídeo para quem está se preparando para concursos públicos,
-            com aulas gravadas, questões comentadas e acompanhamento de progresso.
-          </p>
+          <p className="mt-3 text-sm text-ink-500">{tagline}</p>
+          {socialLinks && socialLinks.length > 0 && (
+            <ul className="mt-4 flex flex-wrap gap-4 text-sm">
+              {socialLinks.map((link) => (
+                <li key={link.href}>
+                  <a
+                    href={link.href}
+                    target="_blank"
+                    rel="noreferrer"
+                    className="font-medium text-brand-600 hover:underline"
+                  >
+                    {link.label}
+                  </a>
+                </li>
+              ))}
+            </ul>
+          )}
         </div>
 
         <div className="grid grid-cols-2 gap-8 text-sm sm:grid-cols-3">
           <div>
             <p className="mb-3 font-semibold text-ink-900">Navegação</p>
             <ul className="space-y-2 text-ink-500">
-              <li><Link href="/cursos" className="hover:text-brand-600">Cursos</Link></li>
-              <li><Link href="/sobre" className="hover:text-brand-600">Quem é a Camila?</Link></li>
-              <li><Link href="/faq" className="hover:text-brand-600">FAQ</Link></li>
+              {(navLinks ?? []).map((link) => (
+                <li key={link.href}>
+                  <Link href={link.href} className="hover:text-brand-600">
+                    {link.label}
+                  </Link>
+                </li>
+              ))}
             </ul>
           </div>
           <div>
@@ -36,15 +64,16 @@ export function Footer() {
             </ul>
           </div>
           <div>
-            <p className="mb-3 font-semibold text-ink-900">Para professores</p>
+            <p className="mb-3 font-semibold text-ink-900">Gestão</p>
             <ul className="space-y-2 text-ink-500">
-              <li><Link href="/professor" className="hover:text-brand-600">Painel da professora</Link></li>
+              <li><Link href="/professor" className="hover:text-brand-600">Painel de cursos</Link></li>
+              <li><Link href="/admin" className="hover:text-brand-600">Configurações do site</Link></li>
             </ul>
           </div>
         </div>
       </div>
       <div className="border-t border-ink-900/5 py-5 text-center text-xs text-ink-300">
-        © {new Date().getFullYear()} Português com a Camila. Todos os direitos reservados.
+        © {new Date().getFullYear()} {siteName} {siteTagline}. Todos os direitos reservados.
       </div>
     </footer>
   );

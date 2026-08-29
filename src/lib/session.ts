@@ -20,3 +20,11 @@ export async function requireInstructor() {
   }
   return user;
 }
+
+export async function requireAdmin() {
+  const user = await requireUser();
+  if (user.role !== ROLES.ADMIN) {
+    redirect("/aluno");
+  }
+  return user;
+}

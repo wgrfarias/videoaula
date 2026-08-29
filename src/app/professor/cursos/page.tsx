@@ -5,7 +5,7 @@ import { Card, Badge } from "@/components/ui/card";
 import { LinkButton } from "@/components/ui/button";
 import { formatInstallments } from "@/lib/utils";
 
-export const metadata = { title: "Meus cursos | Painel da professora" };
+export const metadata = { title: "Meus cursos | Painel de cursos" };
 
 export default async function InstructorCoursesPage() {
   const user = await requireInstructor();

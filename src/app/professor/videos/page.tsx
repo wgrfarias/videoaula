@@ -4,7 +4,7 @@ import { Card, Badge } from "@/components/ui/card";
 import { VideoUploadForm } from "@/components/instructor/video-upload-form";
 import { formatDuration } from "@/lib/utils";
 
-export const metadata = { title: "Biblioteca de vídeos | Painel da professora" };
+export const metadata = { title: "Biblioteca de vídeos | Painel de cursos" };
 
 export default async function InstructorVideosPage() {
   const user = await requireInstructor();

@@ -6,7 +6,7 @@ import { Card } from "@/components/ui/card";
 import { LinkButton } from "@/components/ui/button";
 import { formatCurrency } from "@/lib/utils";
 
-export const metadata = { title: "Painel da professora" };
+export const metadata = { title: "Painel de cursos" };
 
 export default async function ProfessorDashboardPage() {
   const user = await requireInstructor();
@@ -26,7 +26,7 @@ export default async function ProfessorDashboardPage() {
       <div className="flex flex-wrap items-center justify-between gap-4">
         <div>
           <h1 className="font-display text-2xl font-bold text-ink-900">Visão geral</h1>
-          <p className="mt-1 text-sm text-ink-500">Bem-vinda de volta, {user.name}.</p>
+          <p className="mt-1 text-sm text-ink-500">Bem-vindo de volta, {user.name}.</p>
         </div>
         <div className="flex gap-3">
           <LinkButton href="/professor/videos" variant="outline">

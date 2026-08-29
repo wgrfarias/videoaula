@@ -74,7 +74,7 @@ export default async function AlunoHomePage() {
                   <h3 className="font-display font-semibold text-ink-900">
                     {enrollment.course.title}
                   </h3>
-                  <div className="mt-3 h-2 w-full overflow-hidden rounded-full bg-cream-200">
+                  <div className="mt-3 h-2 w-full overflow-hidden rounded-full bg-surface-alt">
                     <div
                       className="h-full rounded-full bg-accent-500"
                       style={{ width: `${pct}%` }}

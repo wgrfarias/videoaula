@@ -50,7 +50,7 @@ export default async function CourseDetailPage({
               <span className="flex items-center gap-1.5">
                 <Clock className="h-4 w-4" /> {formatDuration(stats.totalSeconds)} de conteúdo
               </span>
-              <span>Professora {course.instructor.name}</span>
+              <span>Instrutor {course.instructor.name}</span>
             </div>
 
             <p className="mt-6 max-w-2xl text-white/80">{course.description}</p>

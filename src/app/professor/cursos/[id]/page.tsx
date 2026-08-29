@@ -99,7 +99,7 @@ export default async function EditCoursePage({
               id="categoryId"
               name="categoryId"
               defaultValue={course.categoryId ?? ""}
-              className="w-full rounded-xl border border-ink-300/40 bg-white px-4 py-2.5 text-sm outline-none focus:border-brand-500 focus:ring-2 focus:ring-brand-500/20"
+              className="w-full rounded-xl border border-ink-300/40 bg-surface px-4 py-2.5 text-sm outline-none focus:border-brand-500 focus:ring-2 focus:ring-brand-500/20"
             >
               <option value="">Sem categoria</option>
               {categories.map((c) => (
@@ -130,7 +130,7 @@ export default async function EditCoursePage({
                     <button
                       type="submit"
                       disabled={moduleIndex === 0}
-                      className="rounded-lg p-1.5 text-ink-500 hover:bg-cream-200 disabled:opacity-30"
+                      className="rounded-lg p-1.5 text-ink-500 hover:bg-surface-alt disabled:opacity-30"
                     >
                       <ArrowUp className="h-4 w-4" />
                     </button>
@@ -139,7 +139,7 @@ export default async function EditCoursePage({
                     <button
                       type="submit"
                       disabled={moduleIndex === course.modules.length - 1}
-                      className="rounded-lg p-1.5 text-ink-500 hover:bg-cream-200 disabled:opacity-30"
+                      className="rounded-lg p-1.5 text-ink-500 hover:bg-surface-alt disabled:opacity-30"
                     >
                       <ArrowDown className="h-4 w-4" />
                     </button>
@@ -167,7 +167,7 @@ export default async function EditCoursePage({
                         <button
                           type="submit"
                           disabled={lessonIndex === 0}
-                          className="rounded-lg p-1.5 text-ink-500 hover:bg-cream-200 disabled:opacity-30"
+                          className="rounded-lg p-1.5 text-ink-500 hover:bg-surface-alt disabled:opacity-30"
                         >
                           <ArrowUp className="h-3.5 w-3.5" />
                         </button>
@@ -176,7 +176,7 @@ export default async function EditCoursePage({
                         <button
                           type="submit"
                           disabled={lessonIndex === module.lessons.length - 1}
-                          className="rounded-lg p-1.5 text-ink-500 hover:bg-cream-200 disabled:opacity-30"
+                          className="rounded-lg p-1.5 text-ink-500 hover:bg-surface-alt disabled:opacity-30"
                         >
                           <ArrowDown className="h-3.5 w-3.5" />
                         </button>
@@ -185,7 +185,7 @@ export default async function EditCoursePage({
                         <button
                           type="submit"
                           title={lesson.freePreview ? "Tornar restrita" : "Tornar gratuita"}
-                          className="rounded-lg p-1.5 text-ink-500 hover:bg-cream-200"
+                          className="rounded-lg p-1.5 text-ink-500 hover:bg-surface-alt"
                         >
                           {lesson.freePreview ? (
                             <Lock className="h-3.5 w-3.5" />

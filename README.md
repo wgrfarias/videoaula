@@ -1,9 +1,10 @@
-# Português com a Camila — Plataforma de venda de videoaulas
+# Rumo à TI com Wagner Farias — Plataforma de venda de videoaulas
 
 Plataforma completa para vender cursos em vídeo online: catálogo público com
-checkout, área do aluno para assistir aos cursos comprados e painel da
-professora para criar cursos, enviar vídeos e reaproveitar aulas já gravadas
-em novos produtos (combos).
+checkout, área do aluno para assistir aos cursos comprados, painel de
+gestão de cursos para criar produtos, enviar vídeos e reaproveitar aulas já
+gravadas em novos combos, e um admin para editar os textos e links do site
+sem mexer em código.
 
 ## Stack
 
@@ -11,6 +12,8 @@ em novos produtos (combos).
 - **Prisma** + SQLite (fácil de trocar por Postgres em produção)
 - **NextAuth v5** (Credentials) com sessão JWT e controle de papéis
   (`STUDENT`, `INSTRUCTOR`, `ADMIN`)
+- **next-themes** para o tema claro/escuro (persistido por navegador, com
+  opção de seguir o tema do sistema)
 - Upload e streaming de vídeo em disco local, com checagem de matrícula e
   suporte a HTTP Range (permite avançar o vídeo sem baixar o arquivo todo)
 
@@ -21,13 +24,14 @@ em novos produtos (combos).
 - Página de curso com conteúdo programático, aulas grátis de demonstração e
   compra
 - Cadastro/login de aluno
+- Alternância de tema claro/escuro (botão no menu)
 
 **Área do aluno (`/aluno`)**
 - Lista dos cursos comprados com barra de progresso
 - Player do curso com sidebar de módulos/aulas, marcação de aula concluída e
   retomada de onde parou
 
-**Painel da professora (`/professor`)**
+**Painel de cursos (`/professor`, papéis `INSTRUCTOR`/`ADMIN`)**
 - Visão geral (cursos publicados, alunos, faturamento)
 - Biblioteca de vídeos: upload de aulas, com indicação de em quais cursos
   cada vídeo já é usado
@@ -37,13 +41,19 @@ em novos produtos (combos).
   "combo" reaproveita aulas de dois cursos existentes, como no curso de
   demonstração já incluído no seed
 
+**Admin (`/admin`, papel `ADMIN`)**
+- Painel de "Conteúdo do site": nome/assinatura da marca, textos e botões do
+  topo da home, texto e título da página Sobre, perguntas frequentes, links
+  do menu/rodapé e redes sociais — tudo editável sem precisar mexer em código
+  e refletido nas páginas públicas assim que salvo
+
 ## Rodando localmente
 
 ```bash
 npm install
 cp .env.example .env        # ajuste os valores se quiser
 npm run db:migrate          # cria o banco SQLite e as tabelas
-npm run db:seed             # popula com professora, aluna e 3 cursos de exemplo
+npm run db:seed             # popula com usuários e 3 cursos de exemplo
 npm run dev
 ```
 
@@ -51,16 +61,18 @@ Acesse http://localhost:3000.
 
 ### Contas de demonstração (criadas pelo seed)
 
-| Papel      | E-mail                     | Senha      |
-|------------|-----------------------------|------------|
-| Aluna      | `aluno@exemplo.com`         | `senha123` |
-| Professora | `professora@exemplo.com`    | `senha123` |
+| Papel        | E-mail                    | Senha      |
+|--------------|---------------------------|------------|
+| Aluna        | `aluno@exemplo.com`       | `senha123` |
+| Admin/Gestor | `wagner@rumoati.com.br`   | `senha123` |
 
-A aluna já é matriculada em "Português do Zero" para você entrar direto no
-player. Os três cursos do seed demonstram o reaproveitamento de vídeo: o
-curso "Combo" usa exatamente os mesmos registros de vídeo das aulas de
-"Português do Zero" e do "Curso 4.000 Questões", sem precisar reenviar
-nenhum arquivo.
+A conta admin (Wagner) acumula os papéis de gestor de cursos e admin do
+site — acessa tanto `/professor` quanto `/admin`. A aluna já é matriculada
+em "Lógica de Programação do Zero" para você entrar direto no player. Os
+três cursos do seed demonstram o reaproveitamento de vídeo: o curso "Combo
+Iniciante em TI" usa exatamente os mesmos registros de vídeo das aulas de
+"Lógica de Programação do Zero" e de "Fundamentos de Redes e Linux", sem
+precisar reenviar nenhum arquivo.
 
 ## Estrutura de dados (Prisma)
 
@@ -72,13 +84,25 @@ nenhum arquivo.
 - `Order` / `Enrollment` — compra e liberação de acesso (com expiração por
   `accessDays`)
 - `LessonProgress` — progresso de cada aluno por aula
+- `SiteContent` — linha única com os textos/links editáveis pelo `/admin`
+  (listas como links de menu, redes sociais e FAQ ficam como JSON em texto)
 
 SQLite não tem enum nativo, então `role` e `status` são strings com os
 valores definidos em `src/lib/constants.ts`.
 
+## Tema claro/escuro
+
+Implementado com `next-themes` (`attribute="class"`, padrão "sistema"). As
+cores são todas variáveis CSS (`src/app/globals.css`) com um bloco de
+valores para `:root` (claro) e outro para `:root.dark` (escuro) — os
+componentes usam só os nomes dos tokens (`bg-surface`, `text-ink-900`,
+`bg-background`, etc.), então não precisam de classes `dark:` espalhadas
+pelo código. O botão de alternância fica no menu (site) e na barra lateral
+dos painéis internos.
+
 ## Upload e streaming de vídeo
 
-- `POST /api/videos/upload` — só professora/admin; salva o arquivo em
+- `POST /api/videos/upload` — só instrutor/admin; salva o arquivo em
   `public/uploads/videos` e cria o registro `Video`
 - `GET /api/stream/[videoId]?lesson=<lessonId>` — verifica se o usuário pode
   assistir (aula grátis, dono do vídeo, ou matrícula ativa no curso da aula)
@@ -103,7 +127,7 @@ de liberar a matrícula — o modelo de dados já suporta o fluxo
 - `npm run build` / `npm start` — build e execução de produção
 - `npm run lint` — ESLint
 - `npm run db:migrate` — aplica migrations do Prisma
-- `npm run db:seed` — popula o banco com dados de demonstração
+- `npm run db:seed` — popula o banco com dados de demonstração (idempotente)
 - `npm run db:studio` — abre o Prisma Studio para inspecionar o banco
 
 ## Observações para deploy

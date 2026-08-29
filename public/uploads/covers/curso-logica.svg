@@ -1,0 +1,16 @@
+<svg xmlns="http://www.w3.org/2000/svg" viewBox="0 0 640 400" width="640" height="400">
+  <defs>
+    <linearGradient id="g1" x1="0" y1="0" x2="1" y2="1">
+      <stop offset="0%" stop-color="#1c6dd0"/>
+      <stop offset="100%" stop-color="#081f45"/>
+    </linearGradient>
+  </defs>
+  <rect width="640" height="400" fill="url(#g1)"/>
+  <circle cx="560" cy="60" r="120" fill="#ffffff" opacity="0.06"/>
+  <circle cx="60" cy="360" r="160" fill="#34c777" opacity="0.15"/>
+  <text x="48" y="150" font-family="Menlo, Consolas, monospace" font-size="30" fill="#86e0b0">&lt;/&gt;</text>
+  <text x="48" y="210" font-family="Georgia, serif" font-size="40" fill="#ffffff" font-weight="700">Lógica de</text>
+  <text x="48" y="256" font-family="Georgia, serif" font-size="40" fill="#ffffff" font-weight="700">Programação</text>
+  <rect x="48" y="280" width="150" height="6" rx="3" fill="#34c777"/>
+  <text x="48" y="316" font-family="Arial, sans-serif" font-size="18" fill="#d3e7f8">Do zero ao primeiro algoritmo</text>
+</svg>

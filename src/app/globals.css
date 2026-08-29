@@ -1,33 +1,51 @@
 @import "tailwindcss";
 
+@custom-variant dark (&:where(.dark, .dark *));
+
 :root {
-  --background: #fdf8f4;
-  --foreground: #241f2b;
+  --background: #f4f6fa;
+  --foreground: #0f1720;
 
-  --color-brand-50: #f4f0ff;
-  --color-brand-100: #ebe3ff;
-  --color-brand-200: #d6c8ff;
-  --color-brand-300: #b79cff;
-  --color-brand-400: #9a6dff;
-  --color-brand-500: #7c3aed;
-  --color-brand-600: #6a24d9;
-  --color-brand-700: #571db0;
-  --color-brand-800: #3f1682;
-  --color-brand-900: #241141;
+  --color-brand-50: #eaf3fc;
+  --color-brand-100: #d3e7f8;
+  --color-brand-200: #a6cef2;
+  --color-brand-300: #6fb0e8;
+  --color-brand-400: #3f93dc;
+  --color-brand-500: #1c6dd0;
+  --color-brand-600: #155bb5;
+  --color-brand-700: #0f4690;
+  --color-brand-800: #0b3269;
+  --color-brand-900: #081f45;
 
-  --color-accent-300: #ffb4c2;
-  --color-accent-400: #fb7185;
-  --color-accent-500: #f43f5e;
-  --color-accent-600: #d92c4d;
+  --color-accent-300: #86e0b0;
+  --color-accent-400: #34c777;
+  --color-accent-500: #16a34a;
+  --color-accent-600: #0e7c38;
 
-  --color-ink-900: #1c1720;
-  --color-ink-700: #423a4d;
-  --color-ink-500: #6f6478;
-  --color-ink-300: #a89dae;
+  --color-ink-900: #0f1720;
+  --color-ink-700: #3b4552;
+  --color-ink-500: #64707d;
+  --color-ink-300: #a3aebb;
 
-  --color-cream-50: #fffdfb;
-  --color-cream-100: #fdf8f4;
-  --color-cream-200: #f7ece2;
+  --color-surface: #ffffff;
+  --color-surface-alt: #eaeff5;
+}
+
+:root.dark {
+  --background: #0b0e14;
+  --foreground: #eef2f6;
+
+  --color-brand-50: #0c1a2e;
+  --color-brand-100: #0f2440;
+  --color-brand-200: #163d5f;
+
+  --color-ink-900: #f2f5f8;
+  --color-ink-700: #c9d2db;
+  --color-ink-500: #93a0ac;
+  --color-ink-300: #5b6672;
+
+  --color-surface: #131822;
+  --color-surface-alt: #1b2230;
 }
 
 @theme inline {
@@ -55,9 +73,8 @@
   --color-ink-500: var(--color-ink-500);
   --color-ink-300: var(--color-ink-300);
 
-  --color-cream-50: var(--color-cream-50);
-  --color-cream-100: var(--color-cream-100);
-  --color-cream-200: var(--color-cream-200);
+  --color-surface: var(--color-surface);
+  --color-surface-alt: var(--color-surface-alt);
 
   --font-display: var(--font-poppins);
   --font-sans: var(--font-inter);
@@ -74,7 +91,7 @@ body {
 }
 
 .bg-hero-gradient {
-  background: radial-gradient(120% 120% at 20% 0%, #3f1682 0%, #241141 55%, #1c1720 100%);
+  background: radial-gradient(120% 120% at 20% 0%, #0b3269 0%, #081f45 55%, #060f26 100%);
 }
 
 .text-balance {

@@ -125,7 +125,7 @@ export function CoursePlayer({
                   "flex shrink-0 items-center gap-1.5 rounded-full px-3 py-1.5 text-xs font-semibold transition",
                   completedIds.has(currentLesson.id)
                     ? "bg-emerald-100 text-emerald-700"
-                    : "bg-cream-200 text-ink-700 hover:bg-cream-200/70"
+                    : "bg-surface-alt text-ink-700 hover:bg-surface-alt/70"
                 )}
               >
                 <CheckCircle2 className="h-3.5 w-3.5" />
@@ -139,7 +139,7 @@ export function CoursePlayer({
         )}
       </div>
 
-      <aside className="rounded-2xl border border-ink-900/10 bg-white p-4">
+      <aside className="rounded-2xl border border-ink-900/10 bg-surface p-4">
         <p className="mb-3 px-1 text-sm font-semibold text-ink-900">Conteúdo do curso</p>
         <div className="max-h-[70vh] space-y-4 overflow-y-auto pr-1">
           {course.modules.map((module) => (
@@ -157,7 +157,7 @@ export function CoursePlayer({
                         onClick={() => setCurrentLessonId(lesson.id)}
                         className={cn(
                           "flex w-full items-center gap-2.5 rounded-xl px-2.5 py-2 text-left text-sm transition",
-                          active ? "bg-brand-50 text-brand-700" : "text-ink-700 hover:bg-cream-200"
+                          active ? "bg-brand-50 text-brand-700" : "text-ink-700 hover:bg-surface-alt"
                         )}
                       >
                         {done ? (

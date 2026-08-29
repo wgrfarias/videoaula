@@ -136,6 +136,37 @@ model Enrollment {
   @@unique([userId, courseId])
 }
 
+// Singleton row (id is always "singleton") holding the editable text/links
+// shown across the public site — managed from /admin. List-shaped fields
+// (navLinks, socialLinks, faqItems) are stored as JSON-encoded strings since
+// SQLite has no native Json column type.
+model SiteContent {
+  id String @id @default("singleton")
+
+  siteName    String @default("Rumo à TI")
+  siteTagline String @default("com Wagner Farias")
+
+  heroBadgeText      String @default("Turma nova com vagas abertas")
+  heroTitle          String @default("Dê o próximo passo rumo à sua carreira em TI")
+  heroSubtitle       String @default("Aulas gravadas, direto ao ponto, para quem quer migrar de carreira ou evoluir em Tecnologia da Informação.")
+  heroPrimaryLabel   String @default("Ver cursos disponíveis")
+  heroPrimaryHref    String @default("/cursos")
+  heroSecondaryLabel String @default("Conhecer o Wagner")
+  heroSecondaryHref  String @default("/sobre")
+  heroStatLine       String @default("+1.200 alunos em transição de carreira")
+
+  footerTagline String @default("Cursos em vídeo para quem quer trilhar carreira em Tecnologia da Informação, com aulas gravadas, exercícios práticos e acompanhamento de progresso.")
+
+  aboutTitle String @default("Quem é o Wagner Farias?")
+  aboutBody  String @default("Wagner Farias atua há mais de 10 anos na área de Tecnologia da Informação, passando por times de infraestrutura, projetos e desenvolvimento.\n\nHoje dedica seu tempo a ajudar quem quer migrar de carreira ou dar os primeiros passos rumo à TI, com uma didática direta e sem enrolação.")
+
+  navLinksJson    String @default("[{\"label\":\"Início\",\"href\":\"/\"},{\"label\":\"Cursos\",\"href\":\"/cursos\"},{\"label\":\"Quem é o Wagner?\",\"href\":\"/sobre\"},{\"label\":\"FAQ\",\"href\":\"/faq\"}]")
+  socialLinksJson String @default("[{\"label\":\"Instagram\",\"href\":\"https://instagram.com\"},{\"label\":\"YouTube\",\"href\":\"https://youtube.com\"},{\"label\":\"LinkedIn\",\"href\":\"https://linkedin.com\"}]")
+  faqItemsJson    String @default("[]")
+
+  updatedAt DateTime @updatedAt
+}
+
 model LessonProgress {
   id            String   @id @default(cuid())
   watchedSeconds Int     @default(0)

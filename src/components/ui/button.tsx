@@ -8,9 +8,9 @@ const variants = {
   secondary:
     "bg-brand-600 text-white hover:bg-brand-700",
   outline:
-    "border border-ink-300/40 text-ink-900 hover:bg-cream-200 bg-transparent",
-  ghost: "text-ink-900 hover:bg-cream-200 bg-transparent",
-  light: "bg-white text-brand-700 hover:bg-cream-100",
+    "border border-ink-300/40 text-ink-900 hover:bg-surface-alt bg-transparent",
+  ghost: "text-ink-900 hover:bg-surface-alt bg-transparent",
+  light: "bg-white text-brand-700 hover:bg-background",
 } as const;
 
 const sizes = {

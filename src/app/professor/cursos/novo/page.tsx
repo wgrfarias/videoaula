@@ -4,7 +4,7 @@ import { Label, Input, Textarea } from "@/components/ui/input";
 import { Button } from "@/components/ui/button";
 import { Card } from "@/components/ui/card";
 
-export const metadata = { title: "Novo curso | Painel da professora" };
+export const metadata = { title: "Novo curso | Painel de cursos" };
 
 export default async function NewCoursePage() {
   const categories = await getCategories();
@@ -21,7 +21,7 @@ export default async function NewCoursePage() {
         <form action={createCourse} className="space-y-4">
           <div>
             <Label htmlFor="title">Título do curso</Label>
-            <Input id="title" name="title" required placeholder="Ex: Português do Zero" />
+            <Input id="title" name="title" required placeholder="Ex: Lógica de Programação do Zero" />
           </div>
           <div>
             <Label htmlFor="subtitle">Subtítulo (opcional)</Label>
@@ -52,7 +52,7 @@ export default async function NewCoursePage() {
             <select
               id="categoryId"
               name="categoryId"
-              className="w-full rounded-xl border border-ink-300/40 bg-white px-4 py-2.5 text-sm outline-none focus:border-brand-500 focus:ring-2 focus:ring-brand-500/20"
+              className="w-full rounded-xl border border-ink-300/40 bg-surface px-4 py-2.5 text-sm outline-none focus:border-brand-500 focus:ring-2 focus:ring-brand-500/20"
             >
               <option value="">Sem categoria</option>
               {categories.map((c) => (

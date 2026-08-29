@@ -17,6 +17,7 @@ export const authConfig = {
 
       const isStudentArea = pathname.startsWith("/aluno");
       const isInstructorArea = pathname.startsWith("/professor");
+      const isAdminArea = pathname.startsWith("/admin");
 
       if (isStudentArea) {
         return isLoggedIn;
@@ -24,6 +25,10 @@ export const authConfig = {
 
       if (isInstructorArea) {
         return isLoggedIn && (role === "INSTRUCTOR" || role === "ADMIN");
+      }
+
+      if (isAdminArea) {
+        return isLoggedIn && role === "ADMIN";
       }
 
       return true;

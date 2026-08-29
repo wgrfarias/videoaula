@@ -1,11 +1,12 @@
 import Link from "next/link";
-import { CheckCircle2, PlayCircle, Sparkles, Star } from "lucide-react";
+import { CheckCircle2, PlayCircle, Sparkles } from "lucide-react";
 import { LinkButton } from "@/components/ui/button";
 import { CourseCard } from "@/components/site/course-card";
 import { getPublishedCourses } from "@/lib/data/courses";
+import { getSiteContent } from "@/lib/data/site-content";
 
 export default async function HomePage() {
-  const courses = await getPublishedCourses();
+  const [courses, content] = await Promise.all([getPublishedCourses(), getSiteContent()]);
   const featured = courses.slice(0, 3);
 
   return (
@@ -14,33 +15,27 @@ export default async function HomePage() {
         <div className="mx-auto grid max-w-6xl gap-10 px-5 py-16 md:grid-cols-2 md:items-center md:py-24">
           <div>
             <span className="inline-flex items-center gap-2 rounded-full bg-white/10 px-4 py-1.5 text-xs font-semibold text-accent-300">
-              <Sparkles className="h-3.5 w-3.5" /> Turma nova com vagas abertas
+              <Sparkles className="h-3.5 w-3.5" /> {content.heroBadgeText}
             </span>
             <h1 className="mt-5 font-display text-4xl font-bold leading-tight text-balance md:text-5xl">
-              Português descomplicado para você passar em concursos públicos
+              {content.heroTitle}
             </h1>
-            <p className="mt-5 max-w-lg text-white/75">
-              Aulas gravadas, direto ao ponto, com exercícios comentados das
-              principais bancas do Brasil. Estude no seu ritmo, de onde estiver.
-            </p>
+            <p className="mt-5 max-w-lg text-white/75">{content.heroSubtitle}</p>
             <div className="mt-8 flex flex-wrap gap-3">
-              <LinkButton href="/cursos" size="lg">
-                Ver cursos disponíveis
+              <LinkButton href={content.heroPrimaryHref} size="lg">
+                {content.heroPrimaryLabel}
               </LinkButton>
-              <LinkButton href="/sobre" variant="outline" size="lg" className="border-white/30 text-white hover:bg-white/10">
-                Conhecer a professora
+              <LinkButton
+                href={content.heroSecondaryHref}
+                variant="outline"
+                size="lg"
+                className="border-white/30 text-white hover:bg-white/10"
+              >
+                {content.heroSecondaryLabel}
               </LinkButton>
             </div>
             <div className="mt-10 flex items-center gap-6 text-sm text-white/70">
-              <div className="flex items-center gap-1">
-                <Star className="h-4 w-4 fill-accent-400 text-accent-400" />
-                <Star className="h-4 w-4 fill-accent-400 text-accent-400" />
-                <Star className="h-4 w-4 fill-accent-400 text-accent-400" />
-                <Star className="h-4 w-4 fill-accent-400 text-accent-400" />
-                <Star className="h-4 w-4 fill-accent-400 text-accent-400" />
-                <span className="ml-1 font-semibold text-white">4.9/5</span>
-              </div>
-              <span>+12.000 alunos aprovados</span>
+              <span>{content.heroStatLine}</span>
             </div>
           </div>
 
@@ -52,7 +47,7 @@ export default async function HomePage() {
               <ul className="mt-6 space-y-3 text-sm">
                 {[
                   "Aulas gravadas em vídeo, no seu tempo",
-                  "Questões comentadas de concursos reais",
+                  "Exercícios práticos guiados",
                   "Acompanhamento do seu progresso",
                 ].map((item) => (
                   <li key={item} className="flex items-center gap-2 text-white/85">
@@ -73,7 +68,7 @@ export default async function HomePage() {
               Cursos em destaque
             </p>
             <h2 className="mt-1 font-display text-2xl font-bold text-ink-900 md:text-3xl">
-              Escolha o curso ideal para sua preparação
+              Escolha o curso ideal para sua trilha em TI
             </h2>
           </div>
           <Link href="/cursos" className="hidden shrink-0 text-sm font-semibold text-brand-700 hover:underline md:block">
@@ -92,7 +87,7 @@ export default async function HomePage() {
         )}
       </section>
 
-      <section className="bg-cream-200/60">
+      <section className="bg-surface-alt/60">
         <div className="mx-auto max-w-6xl px-5 py-16">
           <div className="grid gap-8 md:grid-cols-3">
             {[
@@ -102,14 +97,14 @@ export default async function HomePage() {
               },
               {
                 title: "Conteúdo direto ao ponto",
-                desc: "Teoria objetiva seguida de questões comentadas das principais bancas.",
+                desc: "Teoria aplicada ao dia a dia, seguida de exercícios práticos guiados.",
               },
               {
                 title: "Acompanhe seu progresso",
                 desc: "Veja quais aulas você já concluiu e retome de onde parou.",
               },
             ].map((item) => (
-              <div key={item.title} className="rounded-2xl bg-white p-6 shadow-sm">
+              <div key={item.title} className="rounded-2xl bg-surface p-6 shadow-sm">
                 <h3 className="font-display text-lg font-semibold text-ink-900">
                   {item.title}
                 </h3>

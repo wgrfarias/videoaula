@@ -34,8 +34,9 @@ export function LoginForm({ callbackUrl }: { callbackUrl?: string }) {
       router.push(callbackUrl);
     } else {
       const session = await getSession();
-      const isInstructor = session?.user?.role === "INSTRUCTOR" || session?.user?.role === "ADMIN";
-      router.push(isInstructor ? "/professor" : "/aluno");
+      const role = session?.user?.role;
+      const destination = role === "ADMIN" ? "/admin" : role === "INSTRUCTOR" ? "/professor" : "/aluno";
+      router.push(destination);
     }
     router.refresh();
   }
@@ -55,10 +56,10 @@ export function LoginForm({ callbackUrl }: { callbackUrl?: string }) {
         {loading ? "Entrando..." : "Entrar"}
       </Button>
 
-      <div className="rounded-xl bg-cream-200/60 p-3 text-xs text-ink-500">
+      <div className="rounded-xl bg-surface-alt/60 p-3 text-xs text-ink-500">
         <p className="font-semibold text-ink-700">Contas de demonstração</p>
         <p>Aluna: aluno@exemplo.com / senha123</p>
-        <p>Professora: professora@exemplo.com / senha123</p>
+        <p>Admin (Wagner): wagner@rumoati.com.br / senha123</p>
       </div>
     </form>
   );

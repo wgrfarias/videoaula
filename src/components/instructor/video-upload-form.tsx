@@ -80,7 +80,7 @@ export function VideoUploadForm({ onUploaded }: { onUploaded?: (videoId: string)
           type="file"
           accept="video/mp4,video/webm,video/ogg,video/quicktime"
           required
-          className="block w-full rounded-xl border border-dashed border-ink-300/50 bg-cream-50 px-4 py-6 text-sm text-ink-500 file:mr-4 file:rounded-full file:border-0 file:bg-brand-600 file:px-4 file:py-2 file:text-sm file:font-semibold file:text-white"
+          className="block w-full rounded-xl border border-dashed border-ink-300/50 bg-surface px-4 py-6 text-sm text-ink-500 file:mr-4 file:rounded-full file:border-0 file:bg-brand-600 file:px-4 file:py-2 file:text-sm file:font-semibold file:text-white"
         />
       </div>
       <FieldError>{error}</FieldError>

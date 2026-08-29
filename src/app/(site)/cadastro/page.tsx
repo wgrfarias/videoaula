@@ -1,7 +1,7 @@
 import Link from "next/link";
 import { RegisterForm } from "@/components/site/register-form";
 
-export const metadata = { title: "Criar conta | Português com a Camila" };
+export const metadata = { title: "Criar conta | Rumo à TI com Wagner Farias" };
 
 export default function RegisterPage() {
   return (

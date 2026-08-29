@@ -18,15 +18,15 @@ async function main() {
 
   const passwordHash = await bcrypt.hash("senha123", 10);
 
-  const teacher = await prisma.user.upsert({
-    where: { email: "professora@exemplo.com" },
+  const admin = await prisma.user.upsert({
+    where: { email: "wagner@rumoati.com.br" },
     update: {},
     create: {
-      name: "Prof. Camila Rocha",
-      email: "professora@exemplo.com",
+      name: "Wagner Farias",
+      email: "wagner@rumoati.com.br",
       passwordHash,
-      role: ROLES.INSTRUCTOR,
-      bio: "Professora de Português com mais de 10 anos preparando alunos para concursos públicos.",
+      role: ROLES.ADMIN,
+      bio: "Mais de 10 anos em Tecnologia da Informação, ajudando quem quer migrar de carreira ou dar os primeiros passos rumo à TI.",
     },
   });
 
@@ -42,7 +42,7 @@ async function main() {
   });
 
   const categories = await Promise.all(
-    ["Concursos Públicos", "Gramática", "Redação"].map((name) =>
+    ["Carreira em TI", "Programação", "Infraestrutura"].map((name) =>
       prisma.category.upsert({
         where: { name },
         update: {},
@@ -51,20 +51,44 @@ async function main() {
     )
   );
 
+  await prisma.siteContent.upsert({
+    where: { id: "singleton" },
+    update: {},
+    create: {
+      id: "singleton",
+      faqItemsJson: JSON.stringify([
+        {
+          q: "Preciso saber programar para começar?",
+          a: "Não. O curso de Lógica de Programação parte do zero absoluto, sem pré-requisitos.",
+        },
+        {
+          q: "Por quanto tempo tenho acesso ao curso?",
+          a: "O prazo de acesso é exibido na página de cada curso e começa a contar a partir da confirmação da compra.",
+        },
+        {
+          q: "Como acesso as aulas depois de comprar?",
+          a: "Basta entrar na sua conta e acessar a Área do aluno — todos os cursos comprados aparecem lá.",
+        },
+        {
+          q: "As aulas ficam liberadas aos poucos?",
+          a: "Não, assim que a compra é confirmada todas as aulas do curso ficam disponíveis.",
+        },
+      ]),
+    },
+  });
+
   // Reusable video pool — the same recording can back lessons in multiple courses.
   const videoDefs = [
-    { title: "Aula 01 - Fonética e Fonologia", durationSec: 1820 },
-    { title: "Aula 02 - Ortografia oficial", durationSec: 1540 },
-    { title: "Aula 03 - Acentuação gráfica", durationSec: 1690 },
-    { title: "Aula 04 - Classes de palavras: substantivo e adjetivo", durationSec: 2010 },
-    { title: "Aula 05 - Classes de palavras: verbo", durationSec: 2230 },
-    { title: "Aula 06 - Concordância verbal", durationSec: 1955 },
-    { title: "Aula 07 - Concordância nominal", durationSec: 1710 },
-    { title: "Aula 08 - Regência verbal e nominal", durationSec: 1888 },
-    { title: "Aula 09 - Crase: teoria e prática", durationSec: 1620 },
-    { title: "Aula 10 - Pontuação", durationSec: 1740 },
-    { title: "Aula 11 - Interpretação de texto I", durationSec: 2100 },
-    { title: "Aula 12 - Interpretação de texto II", durationSec: 2050 },
+    { title: "Aula 01 - O que é lógica de programação", durationSec: 1320 },
+    { title: "Aula 02 - Variáveis, tipos de dados e operadores", durationSec: 1740 },
+    { title: "Aula 03 - Entrada e saída de dados", durationSec: 1280 },
+    { title: "Aula 04 - Estruturas condicionais (se/senão)", durationSec: 1610 },
+    { title: "Aula 05 - Estruturas de repetição (laços)", durationSec: 1890 },
+    { title: "Aula 06 - Vetores e listas", durationSec: 1720 },
+    { title: "Aula 07 - Funções e modularização", durationSec: 1980 },
+    { title: "Aula 08 - Introdução a algoritmos de ordenação", durationSec: 2100 },
+    { title: "Aula 09 - Recursão na prática", durationSec: 1650 },
+    { title: "Aula 10 - Boas práticas e legibilidade de código", durationSec: 1400 },
   ];
 
   const videos = [];
@@ -77,31 +101,31 @@ async function main() {
         url: `/uploads/videos/sample.mp4`,
         mimeType: "video/mp4",
         durationSec: v.durationSec,
-        ownerId: teacher.id,
+        ownerId: admin.id,
       },
     });
     videos.push(video);
   }
 
-  // Course 1: "Português do Zero" — full grammar course
+  // Course 1: "Lógica de Programação do Zero" — full theory course
   const course1 = await prisma.course.create({
     data: {
-      title: 'Português do Zero',
-      slug: slugify("Português do Zero"),
-      subtitle: 'Baseado no livro "A Gramática para Concursos Públicos"',
+      title: "Lógica de Programação do Zero",
+      slug: slugify("Lógica de Programação do Zero"),
+      subtitle: "O primeiro passo de quem quer migrar de carreira para TI",
       description:
-        "Curso completo de português para quem está começando do zero rumo à aprovação em concursos públicos. Teoria direto ao ponto, com muitos exercícios comentados.",
-      coverImageUrl: "/uploads/covers/curso-zero.svg",
+        "Curso completo de lógica de programação para quem está começando do zero. Teoria direto ao ponto, com muitos exercícios práticos guiados, sem depender de nenhuma linguagem específica.",
+      coverImageUrl: "/uploads/covers/curso-logica.svg",
       price: 250,
       installments: 10,
       accessDays: 180,
       published: true,
-      instructorId: teacher.id,
+      instructorId: admin.id,
       categoryId: categories[1].id,
       modules: {
         create: [
           {
-            title: "Fonética, Ortografia e Acentuação",
+            title: "Fundamentos de Lógica",
             order: 0,
             lessons: {
               create: [
@@ -112,7 +136,7 @@ async function main() {
             },
           },
           {
-            title: "Morfologia",
+            title: "Estruturas de Controle",
             order: 1,
             lessons: {
               create: [
@@ -122,7 +146,7 @@ async function main() {
             },
           },
           {
-            title: "Sintaxe",
+            title: "Estruturas de Dados e Algoritmos",
             order: 2,
             lessons: {
               create: [
@@ -139,12 +163,12 @@ async function main() {
     },
   });
 
-  // Course 2: "4.000 Questões Comentadas" — reuses none of the above, own videos
-  const questionVideos = [];
+  // Course 2: "Fundamentos de Redes e Linux" — hands-on labs, own videos
+  const labVideos = [];
   for (const title of [
-    "Bloco 01 - Questões de Ortografia comentadas",
-    "Bloco 02 - Questões de Sintaxe comentadas",
-    "Bloco 03 - Questões de Interpretação comentadas",
+    "Laboratório 01 - Comandos essenciais do Linux",
+    "Laboratório 02 - Configurando uma rede local",
+    "Laboratório 03 - Introdução ao Docker",
   ]) {
     const video = await prisma.video.create({
       data: {
@@ -152,34 +176,34 @@ async function main() {
         filename: `${slugify(title)}.mp4`,
         url: `/uploads/videos/sample.mp4`,
         mimeType: "video/mp4",
-        durationSec: 2400,
-        ownerId: teacher.id,
+        durationSec: 2100,
+        ownerId: admin.id,
       },
     });
-    questionVideos.push(video);
+    labVideos.push(video);
   }
 
   const course2 = await prisma.course.create({
     data: {
-      title: "Curso 4.000 Questões Comentadas",
-      slug: slugify("Curso 4.000 Questões Comentadas"),
-      subtitle: "Questões das principais bancas de concursos do Brasil",
+      title: "Fundamentos de Redes e Linux",
+      slug: slugify("Fundamentos de Redes e Linux"),
+      subtitle: "Laboratórios práticos para quem quer trabalhar com infraestrutura",
       description:
-        "Resolução comentada de mais de 4.000 questões de português cobradas pelas principais bancas do país. Ideal para treino intensivo antes da prova.",
-      coverImageUrl: "/uploads/covers/curso-questoes.svg",
+        "Aulas 100% práticas: comandos essenciais do Linux, configuração de rede local e primeiros passos com Docker. Ideal para quem quer se preparar para vagas de suporte e infraestrutura.",
+      coverImageUrl: "/uploads/covers/curso-redes.svg",
       price: 250,
       installments: 10,
       accessDays: 180,
       published: true,
-      instructorId: teacher.id,
-      categoryId: categories[0].id,
+      instructorId: admin.id,
+      categoryId: categories[2].id,
       modules: {
         create: [
           {
-            title: "Questões comentadas",
+            title: "Laboratórios práticos",
             order: 0,
             lessons: {
-              create: questionVideos.map((v, i) => ({
+              create: labVideos.map((v, i) => ({
                 title: v.title,
                 order: i,
                 videoId: v.id,
@@ -196,22 +220,22 @@ async function main() {
   // to demonstrate cross-course video reuse when bundling a new product.
   const course3 = await prisma.course.create({
     data: {
-      title: "Combo Português do Zero + 4.000 Questões",
-      slug: slugify("Combo Português do Zero + 4.000 Questões"),
-      subtitle: "1 ano de acesso — teoria completa + treino de questões",
+      title: "Combo Iniciante em TI",
+      slug: slugify("Combo Iniciante em TI"),
+      subtitle: "1 ano de acesso — lógica de programação + redes e Linux",
       description:
-        "O combo definitivo: todas as aulas teóricas de Português do Zero somadas às 4.000 questões comentadas, com um ano de acesso.",
+        "O combo definitivo para quem está começando: todas as aulas de Lógica de Programação somadas aos laboratórios de Redes e Linux, com um ano de acesso.",
       coverImageUrl: "/uploads/covers/curso-combo.svg",
       price: 500,
       installments: 10,
       accessDays: 365,
       published: true,
-      instructorId: teacher.id,
+      instructorId: admin.id,
       categoryId: categories[0].id,
       modules: {
         create: [
           {
-            title: "Teoria completa",
+            title: "Lógica de Programação",
             order: 0,
             lessons: {
               create: videos.slice(0, 6).map((v, i) => ({
@@ -223,10 +247,10 @@ async function main() {
             },
           },
           {
-            title: "Prática de questões",
+            title: "Redes e Linux na prática",
             order: 1,
             lessons: {
-              create: questionVideos.map((v, i) => ({
+              create: labVideos.map((v, i) => ({
                 title: v.title,
                 order: i,
                 videoId: v.id, // same Video row reused from course2
@@ -260,7 +284,7 @@ async function main() {
   });
 
   console.log("Seed concluído:");
-  console.log(`- Professora: professora@exemplo.com / senha123`);
+  console.log(`- Admin (Wagner Farias): wagner@rumoati.com.br / senha123`);
   console.log(`- Aluna: aluno@exemplo.com / senha123`);
   console.log(`- Cursos: ${course1.title}, ${course2.title}, ${course3.title}`);
 }
