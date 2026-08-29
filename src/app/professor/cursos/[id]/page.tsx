@@ -55,11 +55,13 @@ export default async function EditCoursePage({
               {course.published ? "Despublicar" : "Publicar curso"}
             </Button>
           </form>
-          <form action={deleteCourse.bind(null, course.id)}>
-            <Button type="submit" variant="ghost" className="text-accent-600">
-              Excluir
-            </Button>
-          </form>
+          {course._count.enrollments === 0 && course._count.orders === 0 && (
+            <form action={deleteCourse.bind(null, course.id)}>
+              <Button type="submit" variant="ghost" className="text-accent-600">
+                Excluir
+              </Button>
+            </form>
+          )}
         </div>
       </div>
 

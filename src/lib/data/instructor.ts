@@ -18,6 +18,7 @@ export async function getInstructorCourse(courseId: string) {
     where: { id: courseId },
     include: {
       category: true,
+      _count: { select: { enrollments: true, orders: true } },
       modules: {
         orderBy: { order: "asc" },
         include: {

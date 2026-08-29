@@ -129,6 +129,17 @@ export async function deleteCourse(courseId: string) {
   const user = await requireInstructor();
   await assertOwnsCourse(courseId, user.id, user.role === "ADMIN");
 
+  const [enrollmentCount, orderCount] = await Promise.all([
+    prisma.enrollment.count({ where: { courseId } }),
+    prisma.order.count({ where: { courseId } }),
+  ]);
+
+  if (enrollmentCount > 0 || orderCount > 0) {
+    throw new Error(
+      "Este curso já tem matrículas ou pedidos registrados e não pode ser excluído. Despublique-o em vez disso."
+    );
+  }
+
   await prisma.course.delete({ where: { id: courseId } });
 
   revalidatePath("/professor/cursos");
