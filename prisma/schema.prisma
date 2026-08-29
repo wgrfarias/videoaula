@@ -1,0 +1,152 @@
+generator client {
+  provider = "prisma-client-js"
+}
+
+datasource db {
+  provider = "sqlite"
+  url      = env("DATABASE_URL")
+}
+
+// SQLite has no native enum type, so Role / OrderStatus are plain strings.
+// Valid values are enforced in application code — see src/lib/constants.ts.
+
+model User {
+  id            String   @id @default(cuid())
+  name          String
+  email         String   @unique
+  passwordHash  String
+  role          String   @default("STUDENT")
+  avatarUrl     String?
+  bio           String?
+  createdAt     DateTime @default(now())
+  updatedAt     DateTime @updatedAt
+
+  coursesTaught Course[]        @relation("InstructorCourses")
+  videos        Video[]         @relation("UploadedVideos")
+  orders        Order[]
+  enrollments   Enrollment[]
+  progress      LessonProgress[]
+}
+
+model Category {
+  id      String   @id @default(cuid())
+  name    String   @unique
+  slug    String   @unique
+  courses Course[]
+}
+
+model Course {
+  id            String   @id @default(cuid())
+  title         String
+  slug          String   @unique
+  subtitle      String?
+  description   String
+  coverImageUrl String?
+  price         Float
+  installments  Int      @default(1)
+  accessDays    Int      @default(365)
+  published     Boolean  @default(false)
+  createdAt     DateTime @default(now())
+  updatedAt     DateTime @updatedAt
+
+  instructorId String
+  instructor   User      @relation("InstructorCourses", fields: [instructorId], references: [id])
+
+  categoryId String?
+  category   Category? @relation(fields: [categoryId], references: [id])
+
+  modules     Module[]
+  orders      Order[]
+  enrollments Enrollment[]
+}
+
+model Video {
+  id           String   @id @default(cuid())
+  title        String
+  filename     String
+  url          String
+  mimeType     String?
+  durationSec  Int?
+  sizeBytes    Int?
+  createdAt    DateTime @default(now())
+
+  ownerId String
+  owner   User   @relation("UploadedVideos", fields: [ownerId], references: [id])
+
+  lessons Lesson[]
+}
+
+model Module {
+  id       String @id @default(cuid())
+  title    String
+  order    Int    @default(0)
+
+  courseId String
+  course   Course @relation(fields: [courseId], references: [id], onDelete: Cascade)
+
+  lessons Lesson[]
+
+  @@index([courseId])
+}
+
+model Lesson {
+  id            String  @id @default(cuid())
+  title        String
+  description  String?
+  order        Int     @default(0)
+  freePreview  Boolean @default(false)
+
+  moduleId String
+  module   Module @relation(fields: [moduleId], references: [id], onDelete: Cascade)
+
+  videoId String?
+  video   Video?  @relation(fields: [videoId], references: [id])
+
+  progress LessonProgress[]
+
+  @@index([moduleId])
+}
+
+model Order {
+  id        String      @id @default(cuid())
+  amount    Float
+  status    String      @default("PENDING")
+  provider  String      @default("demo")
+  createdAt DateTime    @default(now())
+  paidAt    DateTime?
+
+  userId String
+  user   User   @relation(fields: [userId], references: [id])
+
+  courseId String
+  course   Course @relation(fields: [courseId], references: [id])
+}
+
+model Enrollment {
+  id          String   @id @default(cuid())
+  createdAt   DateTime @default(now())
+  expiresAt   DateTime?
+
+  userId String
+  user   User   @relation(fields: [userId], references: [id])
+
+  courseId String
+  course   Course @relation(fields: [courseId], references: [id])
+
+  @@unique([userId, courseId])
+}
+
+model LessonProgress {
+  id            String   @id @default(cuid())
+  watchedSeconds Int     @default(0)
+  completed     Boolean  @default(false)
+  updatedAt     DateTime @updatedAt
+
+  userId String
+  user   User   @relation(fields: [userId], references: [id])
+
+  lessonId String
+  lesson   Lesson @relation(fields: [lessonId], references: [id], onDelete: Cascade)
+
+  @@unique([userId, lessonId])
+}

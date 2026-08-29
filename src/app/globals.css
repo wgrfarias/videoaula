@@ -1,0 +1,87 @@
+@import "tailwindcss";
+
+:root {
+  --background: #fdf8f4;
+  --foreground: #241f2b;
+
+  --color-brand-50: #f4f0ff;
+  --color-brand-100: #ebe3ff;
+  --color-brand-200: #d6c8ff;
+  --color-brand-300: #b79cff;
+  --color-brand-400: #9a6dff;
+  --color-brand-500: #7c3aed;
+  --color-brand-600: #6a24d9;
+  --color-brand-700: #571db0;
+  --color-brand-800: #3f1682;
+  --color-brand-900: #241141;
+
+  --color-accent-300: #ffb4c2;
+  --color-accent-400: #fb7185;
+  --color-accent-500: #f43f5e;
+  --color-accent-600: #d92c4d;
+
+  --color-ink-900: #1c1720;
+  --color-ink-700: #423a4d;
+  --color-ink-500: #6f6478;
+  --color-ink-300: #a89dae;
+
+  --color-cream-50: #fffdfb;
+  --color-cream-100: #fdf8f4;
+  --color-cream-200: #f7ece2;
+}
+
+@theme inline {
+  --color-background: var(--background);
+  --color-foreground: var(--foreground);
+
+  --color-brand-50: var(--color-brand-50);
+  --color-brand-100: var(--color-brand-100);
+  --color-brand-200: var(--color-brand-200);
+  --color-brand-300: var(--color-brand-300);
+  --color-brand-400: var(--color-brand-400);
+  --color-brand-500: var(--color-brand-500);
+  --color-brand-600: var(--color-brand-600);
+  --color-brand-700: var(--color-brand-700);
+  --color-brand-800: var(--color-brand-800);
+  --color-brand-900: var(--color-brand-900);
+
+  --color-accent-300: var(--color-accent-300);
+  --color-accent-400: var(--color-accent-400);
+  --color-accent-500: var(--color-accent-500);
+  --color-accent-600: var(--color-accent-600);
+
+  --color-ink-900: var(--color-ink-900);
+  --color-ink-700: var(--color-ink-700);
+  --color-ink-500: var(--color-ink-500);
+  --color-ink-300: var(--color-ink-300);
+
+  --color-cream-50: var(--color-cream-50);
+  --color-cream-100: var(--color-cream-100);
+  --color-cream-200: var(--color-cream-200);
+
+  --font-display: var(--font-poppins);
+  --font-sans: var(--font-inter);
+}
+
+body {
+  background: var(--background);
+  color: var(--foreground);
+  font-family: var(--font-sans, ui-sans-serif, system-ui, sans-serif);
+}
+
+.font-display {
+  font-family: var(--font-display, var(--font-sans));
+}
+
+.bg-hero-gradient {
+  background: radial-gradient(120% 120% at 20% 0%, #3f1682 0%, #241141 55%, #1c1720 100%);
+}
+
+.text-balance {
+  text-wrap: balance;
+}
+
+::selection {
+  background: var(--color-accent-400);
+  color: white;
+}
