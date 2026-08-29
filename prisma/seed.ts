@@ -6,6 +6,16 @@ import { slugify } from "../src/lib/utils";
 const prisma = new PrismaClient();
 
 async function main() {
+  // Makes the script safe to re-run: wipe previously seeded course data
+  // (but keep users/categories, which are upserted below) before recreating it.
+  await prisma.lessonProgress.deleteMany();
+  await prisma.enrollment.deleteMany();
+  await prisma.order.deleteMany();
+  await prisma.lesson.deleteMany();
+  await prisma.module.deleteMany();
+  await prisma.course.deleteMany();
+  await prisma.video.deleteMany();
+
   const passwordHash = await bcrypt.hash("senha123", 10);
 
   const teacher = await prisma.user.upsert({
