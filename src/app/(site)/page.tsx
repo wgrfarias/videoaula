@@ -4,6 +4,7 @@ import { LinkButton } from "@/components/ui/button";
 import { CourseCard } from "@/components/site/course-card";
 import { getPublishedCourses } from "@/lib/data/courses";
 import { getSiteContent } from "@/lib/data/site-content";
+import { extractYouTubeId, youtubeEmbedUrl } from "@/lib/youtube";
 
 export default async function HomePage() {
   const [courses, content] = await Promise.all([getPublishedCourses(), getSiteContent()]);
@@ -48,7 +49,15 @@ export default async function HomePage() {
 
           <div className="relative">
             <div className="rounded-3xl bg-white/5 p-6 backdrop-blur-sm">
-              {content.heroVideoUrl ? (
+              {content.heroVideoUrl && extractYouTubeId(content.heroVideoUrl) ? (
+                <iframe
+                  className="aspect-video w-full rounded-2xl"
+                  src={youtubeEmbedUrl(content.heroVideoUrl)}
+                  title="Vídeo de destaque"
+                  allow="accelerometer; autoplay; clipboard-write; encrypted-media; gyroscope; picture-in-picture"
+                  allowFullScreen
+                />
+              ) : content.heroVideoUrl ? (
                 <video
                   src={content.heroVideoUrl}
                   className="aspect-video w-full rounded-2xl bg-black object-cover"

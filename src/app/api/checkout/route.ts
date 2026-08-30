@@ -5,6 +5,7 @@ import { prisma } from "@/lib/prisma";
 import { ORDER_STATUS } from "@/lib/constants";
 import { getSiteContent } from "@/lib/data/site-content";
 import { getEffectivePrice } from "@/lib/pricing";
+import { findValidCoupon, computeCouponPrice } from "@/lib/coupons";
 
 // Demo/instant-paid checkout: creates a PAID order and grants enrollment
 // immediately. Swap the body of this handler for a real gateway (e.g. Stripe
@@ -12,6 +13,7 @@ import { getEffectivePrice } from "@/lib/pricing";
 // a PENDING -> PAID transition driven by a webhook.
 const checkoutSchema = z.object({
   courseSlug: z.string().min(1),
+  couponCode: z.string().optional(),
 });
 
 export async function POST(request: Request) {
@@ -40,14 +42,26 @@ export async function POST(request: Request) {
     return NextResponse.json({ ok: true, alreadyEnrolled: true, slug: course.slug });
   }
 
-  const content = await getSiteContent();
-  const { effectivePrice } = getEffectivePrice(course, {
-    promoActive: content.promoActive,
-    promoGlobalDiscount: content.promoGlobalDiscount,
-  });
+  let effectivePrice: number;
+  let validCouponId: string | null = null;
 
-  await prisma.$transaction([
-    prisma.order.create({
+  if (parsed.data.couponCode) {
+    const result = await findValidCoupon(parsed.data.couponCode, course.id, session.user.id);
+    if ("error" in result) {
+      return NextResponse.json({ error: result.error }, { status: 400 });
+    }
+    effectivePrice = computeCouponPrice(course.price, result.coupon);
+    validCouponId = result.coupon.id;
+  } else {
+    const content = await getSiteContent();
+    effectivePrice = getEffectivePrice(course, {
+      promoActive: content.promoActive,
+      promoGlobalDiscount: content.promoGlobalDiscount,
+    }).effectivePrice;
+  }
+
+  await prisma.$transaction(async (tx) => {
+    const order = await tx.order.create({
       data: {
         amount: effectivePrice,
         status: ORDER_STATUS.PAID,
@@ -56,15 +70,34 @@ export async function POST(request: Request) {
         userId: session.user.id,
         courseId: course.id,
       },
-    }),
-    prisma.enrollment.create({
+    });
+    await tx.enrollment.create({
       data: {
         userId: session.user.id,
         courseId: course.id,
         expiresAt: new Date(Date.now() + course.accessDays * 24 * 60 * 60 * 1000),
       },
-    }),
-  ]);
+    });
+    if (validCouponId) {
+      await tx.couponRedemption.upsert({
+        where: {
+          couponId_userId_courseId: {
+            couponId: validCouponId,
+            userId: session.user.id,
+            courseId: course.id,
+          },
+        },
+        update: { convertedAt: new Date(), orderId: order.id },
+        create: {
+          couponId: validCouponId,
+          userId: session.user.id,
+          courseId: course.id,
+          convertedAt: new Date(),
+          orderId: order.id,
+        },
+      });
+    }
+  });
 
   return NextResponse.json({ ok: true, slug: course.slug });
 }

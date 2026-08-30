@@ -6,8 +6,7 @@ import { getEffectivePrice } from "@/lib/pricing";
 import { getCurrentUser } from "@/lib/session";
 import { prisma } from "@/lib/prisma";
 import { Card } from "@/components/ui/card";
-import { formatCurrency, formatInstallments } from "@/lib/utils";
-import { CheckoutButton } from "@/components/site/checkout-button";
+import { CouponCheckout } from "@/components/site/coupon-checkout";
 
 export default async function CheckoutPage({
   params,
@@ -52,21 +51,16 @@ export default async function CheckoutPage({
           <h2 className="font-display font-semibold text-ink-900">{course.title}</h2>
           <p className="mt-1 text-sm text-ink-500">Acesso por {course.accessDays} dias</p>
 
-          <div className="mt-5 flex items-center justify-between border-t border-ink-900/5 pt-4">
-            <span className="text-sm text-ink-500">Total</span>
-            <span className="flex items-center gap-2">
-              {hasDiscount && (
-                <span className="text-sm text-ink-300 line-through">
-                  {formatCurrency(course.price)}
-                </span>
-              )}
-              <span className="font-display text-xl font-bold text-brand-700">
-                {isFree ? "Grátis" : formatInstallments(effectivePrice, course.installments)}
-              </span>
-            </span>
+          <div className="mt-5">
+            <CouponCheckout
+              courseSlug={course.slug}
+              price={course.price}
+              installments={course.installments}
+              effectivePrice={effectivePrice}
+              hasDiscount={hasDiscount}
+              isFree={isFree}
+            />
           </div>
-
-          <CheckoutButton courseSlug={course.slug} />
 
           <p className="mt-3 text-center text-xs text-ink-300">
             Ambiente de demonstração — o pagamento é confirmado automaticamente.

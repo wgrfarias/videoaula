@@ -2,7 +2,7 @@
 
 import { useState, useTransition } from "react";
 import { useRouter } from "next/navigation";
-import { Library, UploadCloud } from "lucide-react";
+import { Library, UploadCloud, SquarePlay } from "lucide-react";
 import { Input, FieldError } from "@/components/ui/input";
 import { Button } from "@/components/ui/button";
 import { cn, formatDuration } from "@/lib/utils";
@@ -35,7 +35,7 @@ export function AddLessonForm({
   videos: InstructorVideo[];
 }) {
   const router = useRouter();
-  const [tab, setTab] = useState<"existing" | "upload">(
+  const [tab, setTab] = useState<"existing" | "upload" | "youtube">(
     videos.length > 0 ? "existing" : "upload"
   );
   const [loading, setLoading] = useState(false);
@@ -109,6 +109,39 @@ export function AddLessonForm({
     }
   }
 
+  async function handleYoutubeSubmit(e: React.FormEvent<HTMLFormElement>) {
+    e.preventDefault();
+    setError(null);
+    const form = e.currentTarget;
+    const title = (form.elements.namedItem("title") as HTMLInputElement).value.trim();
+    const youtubeUrl = (form.elements.namedItem("youtubeUrl") as HTMLInputElement).value.trim();
+    const durationInput = (form.elements.namedItem("durationSec") as HTMLInputElement).value;
+
+    if (!title || !youtubeUrl) {
+      setError("Preencha o título e o link do YouTube");
+      return;
+    }
+
+    setLoading(true);
+    try {
+      const res = await fetch("/api/videos/youtube", {
+        method: "POST",
+        headers: { "Content-Type": "application/json" },
+        body: JSON.stringify({ title, youtubeUrl, durationSec: durationInput || undefined }),
+      });
+      const data = await res.json();
+      if (!res.ok) throw new Error(data.error ?? "Falha ao vincular vídeo do YouTube");
+
+      await createLesson(moduleId, { title, videoId: data.video.id });
+      form.reset();
+      startTransition(() => router.refresh());
+    } catch (err) {
+      setError(err instanceof Error ? err.message : "Erro ao adicionar aula");
+    } finally {
+      setLoading(false);
+    }
+  }
+
   return (
     <div>
       <div className="flex gap-2 text-xs font-semibold">
@@ -131,6 +164,16 @@ export function AddLessonForm({
           )}
         >
           <UploadCloud className="h-3.5 w-3.5" /> Enviar novo vídeo
+        </button>
+        <button
+          type="button"
+          onClick={() => setTab("youtube")}
+          className={cn(
+            "flex items-center gap-1.5 rounded-full px-3 py-1.5",
+            tab === "youtube" ? "bg-brand-600 text-white" : "bg-surface-alt text-ink-500"
+          )}
+        >
+          <SquarePlay className="h-3.5 w-3.5" /> Link do YouTube
         </button>
       </div>
 
@@ -168,6 +211,19 @@ export function AddLessonForm({
           </div>
           <Button type="submit" disabled={loading} size="sm">
             {loading ? "Enviando..." : "Enviar e adicionar aula"}
+          </Button>
+        </form>
+      )}
+
+      {tab === "youtube" && (
+        <form onSubmit={handleYoutubeSubmit} className="mt-3 space-y-3">
+          <div className="grid gap-3 sm:grid-cols-2">
+            <Input name="title" placeholder="Título da aula" />
+            <Input name="youtubeUrl" placeholder="https://youtube.com/watch?v=..." />
+          </div>
+          <Input name="durationSec" type="number" min="0" placeholder="Duração em segundos (opcional)" />
+          <Button type="submit" disabled={loading} size="sm">
+            {loading ? "Vinculando..." : "Vincular e adicionar aula"}
           </Button>
         </form>
       )}

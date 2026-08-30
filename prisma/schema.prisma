@@ -35,6 +35,7 @@ model User {
   enrollments   Enrollment[]
   progress      LessonProgress[]
   comments      Comment[]
+  couponRedemptions CouponRedemption[]
 }
 
 model Category {
@@ -78,6 +79,11 @@ model Course {
   // modules of every course listed here.
   bundledCourses    Course[] @relation("CourseBundle")
   includedInBundles Course[] @relation("CourseBundle")
+
+  // Coupons restricted to specific courses/combos (scope = "COURSES"). A
+  // sitewide coupon (scope = "SITEWIDE") isn't listed against any course.
+  coupons           Coupon[]           @relation("CouponCourses")
+  couponRedemptions CouponRedemption[]
 }
 
 model Video {
@@ -88,6 +94,10 @@ model Video {
   mimeType     String?
   durationSec  Int?
   sizeBytes    Int?
+  // "upload" (file on disk, served/protected via /api/stream) or "youtube"
+  // (url holds the watch/share URL; playback embeds YouTube directly, so
+  // the platform's own access control only gates the course page around it).
+  provider     String   @default("upload")
   createdAt    DateTime @default(now())
 
   ownerId String
@@ -159,6 +169,54 @@ model Order {
 
   courseId String
   course   Course @relation(fields: [courseId], references: [id])
+
+  couponRedemption CouponRedemption?
+}
+
+// Admin-created discount code. discountType "PERCENT" (discountValue is
+// 0-100) or "FIXED" (discountValue is a R$ amount). scope "SITEWIDE" applies
+// to any course/combo; "COURSES" restricts it to whatever is listed in
+// `courses`. A valid coupon replaces (never stacks with) the site promo or a
+// course's own discountPercent — same "one clear discount" rule used there.
+model Coupon {
+  id             String   @id @default(cuid())
+  code           String   @unique
+  discountType   String
+  discountValue  Float
+  scope          String   @default("SITEWIDE")
+  maxRedemptions Int?
+  onePerCustomer Boolean  @default(false)
+  expiresAt      DateTime?
+  active         Boolean  @default(true)
+  createdAt      DateTime @default(now())
+
+  courses     Course[]           @relation("CouponCourses")
+  redemptions CouponRedemption[]
+}
+
+// One row per (coupon, user, course): created with convertedAt = null the
+// moment a customer applies the code at checkout, so admins can see coupons
+// that were applied but never turned into a sale ("desistência"). Filled in
+// with convertedAt + orderId once the purchase actually completes.
+model CouponRedemption {
+  id          String    @id @default(cuid())
+  appliedAt   DateTime  @default(now())
+  convertedAt DateTime?
+
+  couponId String
+  coupon   Coupon @relation(fields: [couponId], references: [id], onDelete: Cascade)
+
+  userId String
+  user   User   @relation(fields: [userId], references: [id])
+
+  courseId String
+  course   Course @relation(fields: [courseId], references: [id])
+
+  orderId String? @unique
+  order   Order?  @relation(fields: [orderId], references: [id])
+
+  @@unique([couponId, userId, courseId])
+  @@index([couponId])
 }
 
 model Enrollment {

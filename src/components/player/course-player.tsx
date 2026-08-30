@@ -6,6 +6,7 @@ import { cn, formatDuration } from "@/lib/utils";
 import { Badge } from "@/components/ui/card";
 import { formatCPF } from "@/lib/cpf";
 import { LessonComments } from "@/components/player/lesson-comments";
+import { youtubeEmbedUrl } from "@/lib/youtube";
 
 type Lesson = {
   id: string;
@@ -13,7 +14,7 @@ type Lesson = {
   description: string | null;
   freePreview: boolean;
   videoId: string | null;
-  video: { id: string; durationSec: number | null } | null;
+  video: { id: string; durationSec: number | null; provider: string; url: string } | null;
 };
 
 type Module = {
@@ -103,7 +104,16 @@ export function CoursePlayer({
         <h1 className="font-display text-xl font-bold text-ink-900">{course.title}</h1>
 
         <div className="relative mt-4 overflow-hidden rounded-2xl bg-black">
-          {currentLesson?.videoId ? (
+          {currentLesson?.video?.provider === "youtube" ? (
+            <iframe
+              key={currentLesson.id}
+              className="aspect-video w-full"
+              src={youtubeEmbedUrl(currentLesson.video.url)}
+              title={currentLesson.title}
+              allow="accelerometer; autoplay; clipboard-write; encrypted-media; gyroscope; picture-in-picture"
+              allowFullScreen
+            />
+          ) : currentLesson?.videoId ? (
             <video
               key={currentLesson.id}
               controls

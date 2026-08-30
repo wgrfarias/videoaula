@@ -93,6 +93,32 @@ em código.
   pública) — os temas são genéricos, sem qualquer brasão oficial ou
   identidade de corporação policial/estadual real
 
+**Cupons de desconto**
+- `/admin/cupons`: criação de cupons com código, tipo de desconto (percentual
+  ou valor fixo em R$, escolhido por cupom), escopo (qualquer curso/combo ou
+  uma lista específica), limite total de usos e/ou 1 uso por cliente, e data
+  de expiração opcional
+- Um cupom válido **substitui** (não soma com) a promoção do site ou o
+  desconto próprio do curso — o cliente aplica o código na página de
+  checkout e vê o preço recalculado antes de confirmar a compra
+- Cada aplicação de cupom é registrada no momento em que o cliente digita o
+  código (antes de comprar), e marcada como convertida só quando a compra é
+  de fato concluída — isso permite ao admin ver, por cupom, quantos foram
+  **aplicados**, quantos **converteram em venda** e quantos ficaram como
+  **desistência** (cupom aplicado, sem compra), com a taxa de conversão
+
+**Vídeos do YouTube**
+- Ao enviar uma aula (biblioteca de vídeos ou direto no editor de curso) ou
+  o vídeo de destaque da home, dá para colar um link do YouTube em vez de
+  enviar um arquivo — o player incorpora o vídeo do YouTube diretamente
+- Importante: isso não passa pela rota de streaming protegida da
+  plataforma — quem tiver o link do YouTube consegue assistir por lá
+  também, então vale usar vídeos "não listados" para manter algum controle
+  de acesso. A marca d'água de CPF e a barra lateral de progresso continuam
+  funcionando; a marcação automática de "aula concluída" ao terminar o
+  vídeo não funciona para vídeos do YouTube (não há evento de término
+  disponível sem a API do player do YouTube) — dá pra marcar manualmente
+
 **Acesso manual e multi-professor**
 - Na página de edição de um curso, o professor/admin pode conceder acesso a
   um aluno específico pelo e-mail, remover o acesso de qualquer aluno, ou
@@ -142,9 +168,11 @@ próprio faturamento e comissão (20% para Wagner, 15% para Carla).
 - `Course` → `Module` → `Lesson` — hierarquia do conteúdo; `Course` também
   tem `discountPercent` (desconto próprio, substitui a promoção geral) e
   `coverTheme` (tema usado pela capa gerada quando não há upload)
-- `Video` — arquivo enviado uma vez; uma `Lesson` aponta para um `Video`, e o
-  mesmo `Video` pode ser referenciado por `Lesson`s de cursos diferentes
-  (é essa relação que permite reaproveitar aulas em novos produtos)
+- `Video` — arquivo enviado uma vez (`provider = "upload"`) ou um link do
+  YouTube (`provider = "youtube"`, `url` guarda o link); uma `Lesson` aponta
+  para um `Video`, e o mesmo `Video` pode ser referenciado por `Lesson`s de
+  cursos diferentes (é essa relação que permite reaproveitar aulas em novos
+  produtos)
 - `Course.bundledCourses` — auto-relação muitos-para-muitos: um curso
   "combo" lista os cursos inteiros que ele inclui. O acesso é resolvido em
   tempo de leitura (`getGrantingCourseIds`/`getEffectiveModules` em
@@ -157,6 +185,12 @@ próprio faturamento e comissão (20% para Wagner, 15% para Carla).
 - `Order` / `Enrollment` — compra e liberação de acesso (com expiração por
   `accessDays`); `Enrollment` também é criada/removida manualmente pelo
   professor/admin (concessão de acesso sem checkout)
+- `Coupon` — código de desconto (`discountType` `PERCENT`/`FIXED`, `scope`
+  `SITEWIDE`/`COURSES`, `maxRedemptions`, `onePerCustomer`, `expiresAt`)
+- `CouponRedemption` — uma linha por (cupom, aluno, curso); criada com
+  `convertedAt = null` no instante em que o cupom é aplicado no checkout, e
+  preenchida com `convertedAt`/`orderId` só quando a compra é concluída —
+  é essa diferença que dá o número de desistências em `/admin/cupons`
 - `LessonProgress` — progresso de cada aluno por aula
 - `SiteContent` — linha única com os textos/links editáveis pelo `/admin`
   (listas como links de menu, redes sociais e FAQ ficam como JSON em texto),

@@ -12,6 +12,7 @@ export default async function AdminLayout({ children }: { children: React.ReactN
         { href: "/admin", label: "Conteúdo do site", icon: "settings", exact: true },
         { href: "/admin/usuarios", label: "Usuários", icon: "users" },
         { href: "/admin/faturamento", label: "Faturamento", icon: "revenue" },
+        { href: "/admin/cupons", label: "Cupons", icon: "coupon" },
         { href: "/professor", label: "Painel de cursos", icon: "book" },
         { href: "/aluno/perfil", label: "Meu perfil", icon: "profile" },
       ]}
