@@ -4,6 +4,7 @@ import { PlayCircle } from "lucide-react";
 import { requireUser } from "@/lib/session";
 import { prisma } from "@/lib/prisma";
 import { Card } from "@/components/ui/card";
+import { getEffectiveModules } from "@/lib/data/courses";
 
 export const metadata = { title: "Meus cursos | Área do aluno" };
 
@@ -16,6 +17,7 @@ export default async function AlunoHomePage() {
       course: {
         include: {
           modules: { include: { lessons: true } },
+          bundledCourses: { include: { modules: { include: { lessons: true } } } },
         },
       },
     },
@@ -23,7 +25,7 @@ export default async function AlunoHomePage() {
   });
 
   const lessonIds = enrollments.flatMap((e) =>
-    e.course.modules.flatMap((m) => m.lessons.map((l) => l.id))
+    getEffectiveModules(e.course).flatMap((m) => m.lessons.map((l) => l.id))
   );
 
   const progress = await prisma.lessonProgress.findMany({
@@ -49,7 +51,7 @@ export default async function AlunoHomePage() {
 
       <div className="mt-8 grid gap-6 sm:grid-cols-2 lg:grid-cols-3">
         {enrollments.map((enrollment) => {
-          const lessons = enrollment.course.modules.flatMap((m) => m.lessons);
+          const lessons = getEffectiveModules(enrollment.course).flatMap((m) => m.lessons);
           const completed = lessons.filter((l) => completedSet.has(l.id)).length;
           const pct = lessons.length ? Math.round((completed / lessons.length) * 100) : 0;
 

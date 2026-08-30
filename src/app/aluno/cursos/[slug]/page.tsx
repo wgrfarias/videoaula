@@ -2,6 +2,7 @@ import { notFound, redirect } from "next/navigation";
 import { requireUser } from "@/lib/session";
 import { prisma } from "@/lib/prisma";
 import { CoursePlayer } from "@/components/player/course-player";
+import { getEffectiveModules } from "@/lib/data/courses";
 
 export default async function StudentCoursePage({
   params,
@@ -11,18 +12,21 @@ export default async function StudentCoursePage({
   const { slug } = await params;
   const user = await requireUser();
 
+  const moduleWithLessons = {
+    orderBy: { order: "asc" as const },
+    include: {
+      lessons: {
+        orderBy: { order: "asc" as const },
+        include: { video: true },
+      },
+    },
+  };
+
   const course = await prisma.course.findUnique({
     where: { slug },
     include: {
-      modules: {
-        orderBy: { order: "asc" },
-        include: {
-          lessons: {
-            orderBy: { order: "asc" },
-            include: { video: true },
-          },
-        },
-      },
+      modules: moduleWithLessons,
+      bundledCourses: { include: { modules: moduleWithLessons } },
     },
   });
   if (!course) notFound();
@@ -34,14 +38,15 @@ export default async function StudentCoursePage({
     redirect(`/cursos/${slug}`);
   }
 
-  const lessonIds = course.modules.flatMap((m) => m.lessons.map((l) => l.id));
+  const modules = getEffectiveModules(course);
+  const lessonIds = modules.flatMap((m) => m.lessons.map((l) => l.id));
   const progress = await prisma.lessonProgress.findMany({
     where: { userId: user.id, lessonId: { in: lessonIds } },
   });
 
   return (
     <CoursePlayer
-      course={course}
+      course={{ id: course.id, title: course.title, modules }}
       progress={progress.map((p) => ({
         lessonId: p.lessonId,
         watchedSeconds: p.watchedSeconds,

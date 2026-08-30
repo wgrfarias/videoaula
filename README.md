@@ -39,9 +39,13 @@ sem mexer em código.
   aulas — a categoria pode ser escolhida numa lista existente ou criada na
   hora, direto do formulário do curso
 - Ao adicionar uma aula, é possível **enviar um vídeo novo ou reaproveitar
-  qualquer vídeo já enviado** (inclusive de outro curso) — é assim que um
-  "combo" reaproveita aulas de dois cursos existentes, como no curso de
-  demonstração já incluído no seed
+  qualquer vídeo já enviado** (inclusive de outro curso)
+- **Combos**: na página de edição de qualquer curso há a seção "Cursos
+  incluídos", onde dá pra juntar cursos inteiros que você já criou em um
+  novo produto — quem compra o combo ganha acesso a todas as aulas de cada
+  curso incluído, sem recriar módulos nem reenviar vídeo nenhum. Um combo
+  não pode incluir outro combo (evita aninhamento), mas o mesmo curso pode
+  entrar em quantos combos diferentes você quiser
 
 **Admin (`/admin`, papel `ADMIN`)**
 - "Conteúdo do site": nome/assinatura da marca, textos e botões do topo da
@@ -75,10 +79,10 @@ Acesse http://localhost:3000.
 A conta admin (Wagner) acumula os papéis de gestor de cursos e admin do
 site — acessa tanto `/professor` quanto `/admin`. A aluna já é matriculada
 em "Lógica de Programação do Zero" para você entrar direto no player. Os
-três cursos do seed demonstram o reaproveitamento de vídeo: o curso "Combo
-Iniciante em TI" usa exatamente os mesmos registros de vídeo das aulas de
-"Lógica de Programação do Zero" e de "Fundamentos de Redes e Linux", sem
-precisar reenviar nenhum arquivo.
+três cursos do seed demonstram os dois jeitos de reaproveitar conteúdo: o
+curso "Combo Iniciante em TI" não tem nenhuma aula própria — ele **inclui**
+os cursos "Lógica de Programação do Zero" e "Fundamentos de Redes e Linux"
+inteiros (a mesma mecânica da seção "Cursos incluídos" no editor de curso).
 
 ## Estrutura de dados (Prisma)
 
@@ -88,6 +92,12 @@ precisar reenviar nenhum arquivo.
 - `Video` — arquivo enviado uma vez; uma `Lesson` aponta para um `Video`, e o
   mesmo `Video` pode ser referenciado por `Lesson`s de cursos diferentes
   (é essa relação que permite reaproveitar aulas em novos produtos)
+- `Course.bundledCourses` — auto-relação muitos-para-muitos: um curso
+  "combo" lista os cursos inteiros que ele inclui. O acesso é resolvido em
+  tempo de leitura (`getGrantingCourseIds`/`getEffectiveModules` em
+  `src/lib/data/courses.ts`) — matricular alguém no combo não duplica
+  nenhuma aula, só soma o conteúdo dos cursos incluídos na hora de exibir
+  e de checar permissão de streaming
 - `Order` / `Enrollment` — compra e liberação de acesso (com expiração por
   `accessDays`)
 - `LessonProgress` — progresso de cada aluno por aula

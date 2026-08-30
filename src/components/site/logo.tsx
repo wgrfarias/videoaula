@@ -1,51 +1,46 @@
-const GEAR_TEETH_ANGLES = [0, 45, 90, 135, 180, 225, 270, 315];
-
 /**
- * Icon-only mark: gear (career/engineering) + an upward circuit-arrow
- * (growth in tech) tipped with a star, echoing the "Rumo à TI" brand mark.
+ * Icon-only mark: a computer monitor (tech/IT) displaying an upward
+ * circuit-arrow tipped with a star, echoing the "Rumo à TI" brand mark.
  */
 export function LogoMark({ className }: { className?: string }) {
   return (
     <svg viewBox="0 0 48 48" fill="none" xmlns="http://www.w3.org/2000/svg" className={className}>
       <defs>
-        <linearGradient id="rti-gear" x1="6" y1="6" x2="42" y2="42" gradientUnits="userSpaceOnUse">
+        <linearGradient id="rti-monitor" x1="4" y1="4" x2="44" y2="34" gradientUnits="userSpaceOnUse">
           <stop offset="0%" stopColor="#3f93dc" />
           <stop offset="100%" stopColor="#0b3269" />
         </linearGradient>
-        <linearGradient id="rti-arrow" x1="10" y1="34" x2="34" y2="8" gradientUnits="userSpaceOnUse">
+        <linearGradient id="rti-arrow" x1="9" y1="27" x2="35" y2="11" gradientUnits="userSpaceOnUse">
           <stop offset="0%" stopColor="#eafff2" />
           <stop offset="100%" stopColor="#34c777" />
         </linearGradient>
       </defs>
 
-      {GEAR_TEETH_ANGLES.map((angle) => (
-        <rect
-          key={angle}
-          x="21"
-          y="2.5"
-          width="6"
-          height="8"
-          rx="1.5"
-          fill="url(#rti-gear)"
-          transform={`rotate(${angle} 24 24)`}
-        />
-      ))}
-      <circle cx="24" cy="24" r="16" fill="url(#rti-gear)" />
-
+      {/* Star above the screen */}
       <path
-        d="M11 30 L17 24 L21 28 L30 17"
+        d="M38.5 2 L39.6 4.6 L42.2 4.9 L40.3 6.7 L40.8 9.3 L38.5 8 L36.2 9.3 L36.7 6.7 L34.8 4.9 L37.4 4.6 Z"
+        fill="#ffd54a"
+      />
+
+      {/* Monitor bezel */}
+      <rect x="4" y="6" width="40" height="27" rx="4" fill="url(#rti-monitor)" />
+      {/* Screen */}
+      <rect x="8" y="10" width="32" height="19" rx="1.5" fill="#0a1020" />
+      {/* Stand */}
+      <rect x="20" y="33" width="8" height="5" fill="url(#rti-monitor)" />
+      <rect x="13" y="38" width="22" height="4" rx="2" fill="url(#rti-monitor)" />
+
+      {/* Upward circuit-arrow on screen */}
+      <path
+        d="M11 26 L17 20 L21 24 L30 14"
         stroke="url(#rti-arrow)"
-        strokeWidth="3"
+        strokeWidth="2.6"
         strokeLinecap="round"
         strokeLinejoin="round"
       />
-      <path d="M30 17 L37 10" stroke="url(#rti-arrow)" strokeWidth="3" strokeLinecap="round" />
-      <circle cx="17" cy="24" r="1.6" fill="#eafff2" />
-      <circle cx="21" cy="28" r="1.6" fill="#eafff2" />
-      <path
-        d="M39.5 5.5 L40.6 8 L43.2 8.3 L41.3 10 L41.8 12.6 L39.5 11.3 L37.2 12.6 L37.7 10 L35.8 8.3 L38.4 8 Z"
-        fill="#ffd54a"
-      />
+      <path d="M30 14 L36 13" stroke="url(#rti-arrow)" strokeWidth="2.6" strokeLinecap="round" />
+      <circle cx="17" cy="20" r="1.4" fill="#eafff2" />
+      <circle cx="21" cy="24" r="1.4" fill="#eafff2" />
     </svg>
   );
 }

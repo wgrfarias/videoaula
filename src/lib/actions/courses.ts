@@ -154,9 +154,10 @@ export async function deleteCourse(courseId: string) {
   const user = await requireInstructor();
   await assertOwnsCourse(courseId, user.id, user.role === "ADMIN");
 
-  const [enrollmentCount, orderCount] = await Promise.all([
+  const [enrollmentCount, orderCount, bundleCount] = await Promise.all([
     prisma.enrollment.count({ where: { courseId } }),
     prisma.order.count({ where: { courseId } }),
+    prisma.course.count({ where: { id: courseId, includedInBundles: { some: {} } } }),
   ]);
 
   if (enrollmentCount > 0 || orderCount > 0) {
@@ -165,10 +166,58 @@ export async function deleteCourse(courseId: string) {
     );
   }
 
+  if (bundleCount > 0) {
+    throw new Error(
+      "Este curso está incluído em um combo — remova-o do combo antes de excluí-lo."
+    );
+  }
+
   await prisma.course.delete({ where: { id: courseId } });
 
   revalidatePath("/professor/cursos");
   redirect("/professor/cursos");
+}
+
+export async function addCourseToBundle(bundleCourseId: string, formData: FormData) {
+  const user = await requireInstructor();
+  const isAdmin = user.role === "ADMIN";
+
+  const componentCourseId = String(formData.get("componentCourseId") ?? "");
+  if (!componentCourseId) throw new Error("Escolha um curso para incluir");
+
+  if (bundleCourseId === componentCourseId) {
+    throw new Error("Um curso não pode incluir a si mesmo.");
+  }
+
+  await assertOwnsCourse(bundleCourseId, user.id, isAdmin);
+  const component = await assertOwnsCourse(componentCourseId, user.id, isAdmin);
+
+  const componentBundleCount = await prisma.course.count({
+    where: { id: componentCourseId, bundledCourses: { some: {} } },
+  });
+  if (componentBundleCount > 0) {
+    throw new Error("Um combo não pode incluir outro combo — só cursos com conteúdo próprio.");
+  }
+
+  await prisma.course.update({
+    where: { id: bundleCourseId },
+    data: { bundledCourses: { connect: { id: componentCourseId } } },
+  });
+
+  revalidatePath(`/professor/cursos/${bundleCourseId}`);
+  revalidatePath(`/cursos/${component.slug}`);
+}
+
+export async function removeCourseFromBundle(bundleCourseId: string, componentCourseId: string) {
+  const user = await requireInstructor();
+  await assertOwnsCourse(bundleCourseId, user.id, user.role === "ADMIN");
+
+  await prisma.course.update({
+    where: { id: bundleCourseId },
+    data: { bundledCourses: { disconnect: { id: componentCourseId } } },
+  });
+
+  revalidatePath(`/professor/cursos/${bundleCourseId}`);
 }
 
 export async function createModule(courseId: string, formData: FormData) {

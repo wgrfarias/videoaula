@@ -1,5 +1,6 @@
 import { prisma } from "@/lib/prisma";
 import { ROLES } from "@/lib/constants";
+import { getGrantingCourseIds } from "@/lib/data/courses";
 
 export async function canStreamVideo({
   userId,
@@ -32,13 +33,10 @@ export async function canStreamVideo({
   if (lesson.freePreview) return true;
   if (!userId) return false;
 
-  const enrollment = await prisma.enrollment.findUnique({
-    where: {
-      userId_courseId: { userId, courseId: lesson.module.courseId },
-    },
+  const grantingCourseIds = await getGrantingCourseIds(lesson.module.courseId);
+  const enrollments = await prisma.enrollment.findMany({
+    where: { userId, courseId: { in: grantingCourseIds } },
   });
-  if (!enrollment) return false;
-  if (enrollment.expiresAt && enrollment.expiresAt.getTime() < Date.now()) return false;
-
-  return true;
+  const now = Date.now();
+  return enrollments.some((e) => !e.expiresAt || e.expiresAt.getTime() >= now);
 }

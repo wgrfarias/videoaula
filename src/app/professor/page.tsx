@@ -5,6 +5,7 @@ import { getInstructorStats, getInstructorCourses } from "@/lib/data/instructor"
 import { Card } from "@/components/ui/card";
 import { LinkButton } from "@/components/ui/button";
 import { formatCurrency } from "@/lib/utils";
+import { courseStats } from "@/lib/data/courses";
 
 export const metadata = { title: "Painel de cursos" };
 
@@ -61,7 +62,7 @@ export default async function ProfessorDashboardPage() {
                 <div>
                   <p className="font-medium text-ink-900">{course.title}</p>
                   <p className="text-xs text-ink-500">
-                    {course.modules.reduce((sum, m) => sum + m.lessons.length, 0)} aulas ·{" "}
+                    {courseStats(course).lessonCount} aulas ·{" "}
                     {course._count.enrollments} alunos
                   </p>
                 </div>

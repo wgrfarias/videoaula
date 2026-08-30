@@ -4,6 +4,7 @@ import { getInstructorCourses } from "@/lib/data/instructor";
 import { Card, Badge } from "@/components/ui/card";
 import { LinkButton } from "@/components/ui/button";
 import { formatInstallments } from "@/lib/utils";
+import { courseStats } from "@/lib/data/courses";
 
 export const metadata = { title: "Meus cursos | Painel de cursos" };
 
@@ -19,29 +20,34 @@ export default async function InstructorCoursesPage() {
       </div>
 
       <div className="mt-6 grid gap-4 sm:grid-cols-2 lg:grid-cols-3">
-        {courses.map((course) => (
-          <Link key={course.id} href={`/professor/cursos/${course.id}`}>
-            <Card className="h-full p-5 transition hover:shadow-md">
-              <div className="flex items-start justify-between gap-2">
-                <h3 className="font-display font-semibold text-ink-900">{course.title}</h3>
-                <Badge tone={course.published ? "success" : "neutral"}>
-                  {course.published ? "Publicado" : "Rascunho"}
-                </Badge>
-              </div>
-              {course.category && (
-                <p className="mt-1 text-xs text-ink-500">{course.category.name}</p>
-              )}
-              <p className="mt-3 text-sm text-ink-500">
-                {course.modules.length} módulos ·{" "}
-                {course.modules.reduce((sum, m) => sum + m.lessons.length, 0)} aulas ·{" "}
-                {course._count.enrollments} alunos
-              </p>
-              <p className="mt-3 font-semibold text-brand-700">
-                {formatInstallments(course.price, course.installments)}
-              </p>
-            </Card>
-          </Link>
-        ))}
+        {courses.map((course) => {
+          const stats = courseStats(course);
+          return (
+            <Link key={course.id} href={`/professor/cursos/${course.id}`}>
+              <Card className="h-full p-5 transition hover:shadow-md">
+                <div className="flex items-start justify-between gap-2">
+                  <h3 className="font-display font-semibold text-ink-900">{course.title}</h3>
+                  <Badge tone={course.published ? "success" : "neutral"}>
+                    {course.published ? "Publicado" : "Rascunho"}
+                  </Badge>
+                </div>
+                {course.category && (
+                  <p className="mt-1 text-xs text-ink-500">{course.category.name}</p>
+                )}
+                {course.bundledCourses.length > 0 && (
+                  <Badge tone="brand" className="mt-2">Combo · {course.bundledCourses.length} cursos</Badge>
+                )}
+                <p className="mt-3 text-sm text-ink-500">
+                  {stats.moduleCount} módulos · {stats.lessonCount} aulas ·{" "}
+                  {course._count.enrollments} alunos
+                </p>
+                <p className="mt-3 font-semibold text-brand-700">
+                  {formatInstallments(course.price, course.installments)}
+                </p>
+              </Card>
+            </Link>
+          );
+        })}
       </div>
 
       {courses.length === 0 && (

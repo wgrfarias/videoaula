@@ -1,7 +1,12 @@
 import { notFound } from "next/navigation";
-import { ArrowDown, ArrowUp, Lock, Trash2, Unlock } from "lucide-react";
+import Link from "next/link";
+import { ArrowDown, ArrowUp, Lock, Package, Trash2, Unlock, X } from "lucide-react";
 import { requireInstructor } from "@/lib/session";
-import { getInstructorCourse, getInstructorVideos } from "@/lib/data/instructor";
+import {
+  getInstructorCourse,
+  getInstructorVideos,
+  getEligibleBundleComponents,
+} from "@/lib/data/instructor";
 import { getCategories } from "@/lib/data/courses";
 import { Card, Badge } from "@/components/ui/card";
 import { Label, Input, Textarea } from "@/components/ui/input";
@@ -19,6 +24,8 @@ import {
   toggleFreePreview,
   moveModule,
   moveLesson,
+  addCourseToBundle,
+  removeCourseFromBundle,
 } from "@/lib/actions/courses";
 import { formatDuration } from "@/lib/utils";
 
@@ -30,16 +37,21 @@ export default async function EditCoursePage({
   const { id } = await params;
   const user = await requireInstructor();
 
-  const [course, categories, videos] = await Promise.all([
-    getInstructorCourse(id),
+  const course = await getInstructorCourse(id);
+  if (!course || course.instructorId !== user.id) notFound();
+
+  const [categories, videos, eligibleComponents] = await Promise.all([
     getCategories(),
     getInstructorVideos(user.id),
+    getEligibleBundleComponents(
+      user.id,
+      [course.id, ...course.bundledCourses.map((c) => c.id)]
+    ),
   ]);
-
-  if (!course || course.instructorId !== user.id) notFound();
 
   const updateCourseWithId = updateCourse.bind(null, course.id);
   const createModuleWithId = createModule.bind(null, course.id);
+  const addCourseToBundleWithId = addCourseToBundle.bind(null, course.id);
 
   return (
     <div className="mx-auto max-w-4xl space-y-8">
@@ -56,7 +68,9 @@ export default async function EditCoursePage({
               {course.published ? "Despublicar" : "Publicar curso"}
             </Button>
           </form>
-          {course._count.enrollments === 0 && course._count.orders === 0 && (
+          {course._count.enrollments === 0 &&
+            course._count.orders === 0 &&
+            course._count.includedInBundles === 0 && (
             <form action={deleteCourse.bind(null, course.id)}>
               <Button type="submit" variant="ghost" className="text-accent-600">
                 Excluir
@@ -104,12 +118,96 @@ export default async function EditCoursePage({
         </form>
       </Card>
 
+      <Card className="p-6">
+        <div className="flex items-center gap-2">
+          <Package className="h-5 w-5 text-brand-600" />
+          <h2 className="font-display font-semibold text-ink-900">
+            Cursos incluídos (combo)
+          </h2>
+        </div>
+        <p className="mt-1 text-sm text-ink-500">
+          Monte um combo juntando cursos inteiros que você já criou — quem
+          comprar este curso ganha acesso a todas as aulas de cada curso
+          incluído aqui, sem precisar recriar módulos ou reenviar vídeos.
+        </p>
+
+        {course.bundledCourses.length > 0 && (
+          <ul className="mt-4 space-y-2">
+            {course.bundledCourses.map((included) => {
+              const lessonCount = included.modules.reduce((sum, m) => sum + m.lessons.length, 0);
+              return (
+                <li
+                  key={included.id}
+                  className="flex items-center justify-between rounded-xl border border-ink-900/10 px-4 py-2.5"
+                >
+                  <div>
+                    <Link
+                      href={`/professor/cursos/${included.id}`}
+                      className="text-sm font-medium text-ink-900 hover:underline"
+                    >
+                      {included.title}
+                    </Link>
+                    <p className="text-xs text-ink-500">
+                      {included.modules.length} módulos · {lessonCount} aulas
+                    </p>
+                  </div>
+                  <form action={removeCourseFromBundle.bind(null, course.id, included.id)}>
+                    <button
+                      type="submit"
+                      title="Remover do combo"
+                      className="rounded-lg p-1.5 text-accent-600 hover:bg-accent-400/10"
+                    >
+                      <X className="h-4 w-4" />
+                    </button>
+                  </form>
+                </li>
+              );
+            })}
+          </ul>
+        )}
+
+        {eligibleComponents.length > 0 ? (
+          <form action={addCourseToBundleWithId} className="mt-4 flex gap-2">
+            <select
+              name="componentCourseId"
+              defaultValue=""
+              className="w-full rounded-xl border border-ink-300/40 bg-surface px-4 py-2.5 text-sm outline-none focus:border-brand-500 focus:ring-2 focus:ring-brand-500/20"
+            >
+              <option value="" disabled>
+                Escolha um curso para incluir
+              </option>
+              {eligibleComponents.map((c) => (
+                <option key={c.id} value={c.id}>
+                  {c.title}
+                </option>
+              ))}
+            </select>
+            <Button type="submit" className="shrink-0">
+              Incluir no combo
+            </Button>
+          </form>
+        ) : (
+          course.bundledCourses.length === 0 && (
+            <p className="mt-4 text-xs text-ink-300">
+              Você ainda não tem outros cursos disponíveis para incluir aqui —
+              crie outro curso primeiro.
+            </p>
+          )
+        )}
+      </Card>
+
       <div>
         <div className="flex items-center justify-between">
           <h2 className="font-display text-lg font-semibold text-ink-900">
-            Módulos e aulas
+            Módulos e aulas próprias
           </h2>
         </div>
+        {course.bundledCourses.length > 0 && (
+          <p className="mt-1 text-sm text-ink-500">
+            Opcional para um combo — você pode deixar só com os cursos
+            incluídos acima, ou complementar com módulos próprios.
+          </p>
+        )}
 
         <div className="mt-4 space-y-4">
           {course.modules.map((module, moduleIndex) => (

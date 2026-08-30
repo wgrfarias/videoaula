@@ -58,6 +58,12 @@ model Course {
   modules     Module[]
   orders      Order[]
   enrollments Enrollment[]
+
+  // Self many-to-many: a "combo" course bundles other whole courses together.
+  // A bundle course's effective content is its own modules (if any) plus the
+  // modules of every course listed here.
+  bundledCourses    Course[] @relation("CourseBundle")
+  includedInBundles Course[] @relation("CourseBundle")
 }
 
 model Video {

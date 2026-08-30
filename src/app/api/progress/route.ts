@@ -2,6 +2,7 @@ import { NextResponse } from "next/server";
 import { z } from "zod";
 import { auth } from "@/lib/auth";
 import { prisma } from "@/lib/prisma";
+import { getGrantingCourseIds } from "@/lib/data/courses";
 
 const progressSchema = z.object({
   lessonId: z.string().min(1),
@@ -32,10 +33,9 @@ export async function POST(request: Request) {
   }
 
   if (!lesson.freePreview) {
-    const enrollment = await prisma.enrollment.findUnique({
-      where: {
-        userId_courseId: { userId: session.user.id, courseId: lesson.module.courseId },
-      },
+    const grantingCourseIds = await getGrantingCourseIds(lesson.module.courseId);
+    const enrollment = await prisma.enrollment.findFirst({
+      where: { userId: session.user.id, courseId: { in: grantingCourseIds } },
     });
     if (!enrollment) {
       return NextResponse.json({ error: "Acesso não autorizado" }, { status: 403 });

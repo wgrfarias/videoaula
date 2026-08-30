@@ -15,7 +15,17 @@ type CourseCardData = {
   accessDays: number;
   category: { name: string } | null;
   modules: {
+    id: string;
+    title: string;
     lessons: { videoId: string | null; video: { durationSec: number | null } | null }[];
+  }[];
+  bundledCourses?: {
+    title: string;
+    modules: {
+      id: string;
+      title: string;
+      lessons: { videoId: string | null; video: { durationSec: number | null } | null }[];
+    }[];
   }[];
 };
 

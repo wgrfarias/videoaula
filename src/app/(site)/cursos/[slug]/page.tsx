@@ -3,7 +3,7 @@ import { notFound } from "next/navigation";
 import { CheckCircle2, Clock, Lock, PlayCircle } from "lucide-react";
 import { LinkButton } from "@/components/ui/button";
 import { Badge, Card } from "@/components/ui/card";
-import { getCourseBySlug, courseStats } from "@/lib/data/courses";
+import { getCourseBySlug, courseStats, getEffectiveModules } from "@/lib/data/courses";
 import { formatDuration, formatInstallments } from "@/lib/utils";
 import { getCurrentUser } from "@/lib/session";
 import { prisma } from "@/lib/prisma";
@@ -25,6 +25,7 @@ export default async function CourseDetailPage({
     : null;
 
   const stats = courseStats(course);
+  const modules = getEffectiveModules(course);
 
   return (
     <div>
@@ -104,8 +105,16 @@ export default async function CourseDetailPage({
 
       <section className="mx-auto max-w-6xl px-5 py-14">
         <h2 className="font-display text-2xl font-bold text-ink-900">Conteúdo do curso</h2>
+        {course.bundledCourses.length > 0 && (
+          <p className="mt-2 text-sm text-ink-500">
+            Este combo inclui os cursos:{" "}
+            <span className="font-medium text-ink-700">
+              {course.bundledCourses.map((c) => c.title).join(", ")}
+            </span>
+          </p>
+        )}
         <div className="mt-6 space-y-4">
-          {course.modules.map((module) => (
+          {modules.map((module) => (
             <Card key={module.id} className="p-5">
               <h3 className="font-display font-semibold text-ink-900">{module.title}</h3>
               <ul className="mt-3 divide-y divide-ink-900/5">

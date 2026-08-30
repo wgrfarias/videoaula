@@ -8,6 +8,7 @@ export async function getInstructorCourses(instructorId: string) {
       category: true,
       _count: { select: { enrollments: true } },
       modules: { include: { lessons: true } },
+      bundledCourses: { include: { modules: { include: { lessons: true } } } },
     },
     orderBy: { createdAt: "desc" },
   });
@@ -18,7 +19,7 @@ export async function getInstructorCourse(courseId: string) {
     where: { id: courseId },
     include: {
       category: true,
-      _count: { select: { enrollments: true, orders: true } },
+      _count: { select: { enrollments: true, orders: true, includedInBundles: true } },
       modules: {
         orderBy: { order: "asc" },
         include: {
@@ -28,7 +29,28 @@ export async function getInstructorCourse(courseId: string) {
           },
         },
       },
+      bundledCourses: {
+        include: { modules: { include: { lessons: true } } },
+      },
     },
+  });
+}
+
+// Other courses this instructor could add into a bundle: their own courses,
+// excluding the bundle itself and anything that is already a bundle (no
+// nesting combos inside combos).
+export async function getEligibleBundleComponents(
+  instructorId: string,
+  excludeIds: string[]
+) {
+  return prisma.course.findMany({
+    where: {
+      instructorId,
+      id: { notIn: excludeIds },
+      bundledCourses: { none: {} },
+    },
+    select: { id: true, title: true },
+    orderBy: { title: "asc" },
   });
 }
 

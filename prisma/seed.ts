@@ -216,8 +216,8 @@ async function main() {
     },
   });
 
-  // Course 3: "Combo" — reuses the exact same Video rows from course1 + course2
-  // to demonstrate cross-course video reuse when bundling a new product.
+  // Course 3: "Combo" — bundles course1 + course2 as whole courses (the
+  // combo has no lessons of its own; its content is the union of theirs).
   const course3 = await prisma.course.create({
     data: {
       title: "Combo Iniciante em TI",
@@ -232,32 +232,8 @@ async function main() {
       published: true,
       instructorId: admin.id,
       categoryId: categories[0].id,
-      modules: {
-        create: [
-          {
-            title: "Lógica de Programação",
-            order: 0,
-            lessons: {
-              create: videos.slice(0, 6).map((v, i) => ({
-                title: v.title,
-                order: i,
-                videoId: v.id, // same Video row reused from course1
-                freePreview: i === 0,
-              })),
-            },
-          },
-          {
-            title: "Redes e Linux na prática",
-            order: 1,
-            lessons: {
-              create: labVideos.map((v, i) => ({
-                title: v.title,
-                order: i,
-                videoId: v.id, // same Video row reused from course2
-              })),
-            },
-          },
-        ],
+      bundledCourses: {
+        connect: [{ id: course1.id }, { id: course2.id }],
       },
     },
   });
