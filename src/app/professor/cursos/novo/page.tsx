@@ -47,7 +47,16 @@ export default async function NewCoursePage() {
               <Label htmlFor="accessDays">Acesso (dias)</Label>
               <Input id="accessDays" name="accessDays" type="number" min="1" defaultValue="365" />
             </div>
+            <div>
+              <Label htmlFor="discountPercent">Desconto próprio (%)</Label>
+              <Input id="discountPercent" name="discountPercent" type="number" min="0" max="99" defaultValue="0" />
+            </div>
           </div>
+          <p className="text-xs text-ink-500">
+            Deixe em 0 para preço cheio (ou seguir a promoção do site, se
+            houver uma ativa). Um desconto aqui vale só para este curso e
+            substitui a promoção geral.
+          </p>
 
           <div>
             <Label htmlFor="categoryId">Categoria</Label>

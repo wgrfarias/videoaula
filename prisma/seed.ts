@@ -43,6 +43,22 @@ async function main() {
     },
   });
 
+  // Second instructor, to demonstrate that revenue and commission are
+  // tracked separately per professor (each with their own fee %).
+  const instructor2 = await prisma.user.upsert({
+    where: { email: "carla@rumoati.com.br" },
+    update: {},
+    create: {
+      name: "Carla Mendes",
+      email: "carla@rumoati.com.br",
+      passwordHash,
+      cpf: "11122233396",
+      role: ROLES.INSTRUCTOR,
+      platformFeePercent: 15,
+      bio: "Especialista em segurança da informação e preparação para concursos de TI.",
+    },
+  });
+
   const categories = await Promise.all(
     ["Carreira em TI", "Programação", "Infraestrutura"].map((name) =>
       prisma.category.upsert({
@@ -240,6 +256,108 @@ async function main() {
     },
   });
 
+  // Course 4: taught by the second instructor, so /admin/faturamento has
+  // more than one professor to show a real split.
+  const securityVideo = await prisma.video.create({
+    data: {
+      title: "Aula 01 - Introdução à Segurança da Informação",
+      filename: "introducao-seguranca-da-informacao.mp4",
+      url: `/uploads/videos/sample.mp4`,
+      mimeType: "video/mp4",
+      durationSec: 1500,
+      ownerId: instructor2.id,
+    },
+  });
+
+  const course4 = await prisma.course.create({
+    data: {
+      title: "Introdução à Segurança da Informação",
+      slug: slugify("Introdução à Segurança da Informação"),
+      subtitle: "Conceitos essenciais para quem quer entrar na área de segurança",
+      description:
+        "Aula gratuita de apresentação da área de segurança da informação: principais conceitos, carreiras e por onde começar a estudar.",
+      coverTheme: "security-navy",
+      price: 0,
+      installments: 1,
+      accessDays: 365,
+      published: true,
+      instructorId: instructor2.id,
+      categoryId: categories[0].id,
+      modules: {
+        create: [
+          {
+            title: "Introdução",
+            order: 0,
+            lessons: {
+              create: [{ title: securityVideo.title, order: 0, videoId: securityVideo.id, freePreview: true }],
+            },
+          },
+        ],
+      },
+    },
+  });
+
+  // Course 5: also the second instructor's, but paid — so /admin/faturamento
+  // shows a real (non-zero) split for them, distinct from course 4's free lesson.
+  const hardeningVideo = await prisma.video.create({
+    data: {
+      title: "Aula 01 - Hardening de Servidores Linux",
+      filename: "hardening-de-servidores-linux.mp4",
+      url: `/uploads/videos/sample.mp4`,
+      mimeType: "video/mp4",
+      durationSec: 1980,
+      ownerId: instructor2.id,
+    },
+  });
+
+  const course5 = await prisma.course.create({
+    data: {
+      title: "Hardening de Servidores Linux",
+      slug: slugify("Hardening de Servidores Linux"),
+      subtitle: "Proteja servidores contra as falhas de configuração mais comuns",
+      description:
+        "Curso prático de hardening: firewall, permissões, atualização de pacotes e monitoramento básico de segurança em servidores Linux.",
+      coverTheme: "security-navy",
+      price: 197,
+      installments: 6,
+      accessDays: 365,
+      published: true,
+      instructorId: instructor2.id,
+      categoryId: categories[2].id,
+      modules: {
+        create: [
+          {
+            title: "Hardening na prática",
+            order: 0,
+            lessons: {
+              create: [{ title: hardeningVideo.title, order: 0, videoId: hardeningVideo.id }],
+            },
+          },
+        ],
+      },
+    },
+  });
+
+  await prisma.order.create({
+    data: {
+      amount: course5.price,
+      status: ORDER_STATUS.PAID,
+      provider: "demo",
+      paidAt: new Date(),
+      userId: student.id,
+      courseId: course5.id,
+    },
+  });
+  await prisma.enrollment.upsert({
+    where: { userId_courseId: { userId: student.id, courseId: course5.id } },
+    update: {},
+    create: {
+      userId: student.id,
+      courseId: course5.id,
+      expiresAt: new Date(Date.now() + course5.accessDays * 24 * 60 * 60 * 1000),
+    },
+  });
+
   // Enroll the demo student in course 1 so /aluno has content on first login.
   await prisma.order.create({
     data: {
@@ -263,8 +381,11 @@ async function main() {
 
   console.log("Seed concluído:");
   console.log(`- Admin (Wagner Farias): wagner@rumoati.com.br / senha123`);
+  console.log(`- Professora (Carla Mendes): carla@rumoati.com.br / senha123`);
   console.log(`- Aluna: aluno@exemplo.com / senha123`);
-  console.log(`- Cursos: ${course1.title}, ${course2.title}, ${course3.title}`);
+  console.log(
+    `- Cursos: ${course1.title}, ${course2.title}, ${course3.title}, ${course4.title}, ${course5.title}`
+  );
 }
 
 main()

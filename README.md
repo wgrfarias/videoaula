@@ -1,10 +1,12 @@
 # Rumo à TI com Wagner Farias — Plataforma de venda de videoaulas
 
 Plataforma completa para vender cursos em vídeo online: catálogo público com
-checkout, área do aluno para assistir aos cursos comprados, painel de
-gestão de cursos para criar produtos, enviar vídeos e reaproveitar aulas já
-gravadas em novos combos, e um admin para editar os textos e links do site
-sem mexer em código.
+checkout, área do aluno para assistir aos cursos comprados (com marca d'água
+de CPF anti-pirataria, perfil e comentários por aula), painel de gestão de
+cursos para criar produtos, enviar vídeos, reaproveitar aulas em novos
+combos e conceder acesso manual, e um admin para editar textos/promoções do
+site e acompanhar o faturamento de cada professor separadamente — sem mexer
+em código.
 
 ## Stack
 
@@ -47,15 +49,57 @@ sem mexer em código.
   não pode incluir outro combo (evita aninhamento), mas o mesmo curso pode
   entrar em quantos combos diferentes você quiser
 
+**Segurança e conta do aluno**
+- Cadastro exige CPF, validado matematicamente (dígitos verificadores reais,
+  não só formato) — ver `src/lib/cpf.ts`. Uma vez definido, o CPF não pode
+  mais ser trocado
+- O player exibe o CPF do aluno como marca d'água (overlay na tela, sem
+  reprocessar o vídeo) no canto inferior direito — se a pessoa gravar ou
+  baixar a tela, o CPF de quem assistiu fica registrado na captura
+- `/aluno/perfil`: foto, apelido, bio e o CPF (bloqueado após definido)
+- Comentários por aula, públicos (todo aluno matriculado vê) ou privados
+  (só o autor e o professor/admin veem) — professor e admin podem apagar
+  qualquer comentário
+
 **Admin (`/admin`, papel `ADMIN`)**
 - "Conteúdo do site": nome/assinatura da marca, textos e botões do topo da
-  home, texto e título da página Sobre, perguntas frequentes, links do
-  menu/rodapé e redes sociais — tudo editável sem precisar mexer em código e
-  refletido nas páginas públicas assim que salvo
+  home, **vídeo de destaque da home** (upload próprio ou placeholder),
+  **promoção do site inteiro** (desconto percentual + banner), texto e
+  título da página Sobre, perguntas frequentes, links do menu/rodapé e
+  redes sociais — tudo editável sem precisar mexer em código e refletido
+  nas páginas públicas assim que salvo
 - "Usuários" (`/admin/usuarios`): lista todas as contas (criadas por e-mail
-  ou por Google) e permite trocar o papel de qualquer uma entre Aluno,
-  Professor/gestor de cursos e Admin — é assim que o admin master decide
-  quem tem acesso ao painel de cursos, sem precisar mexer no banco
+  ou por Google), permite trocar o papel de qualquer uma entre Aluno,
+  Professor/gestor de cursos e Admin, e define a **comissão da plataforma
+  (%)** de cada professor — é assim que o admin master decide quem tem
+  acesso ao painel de cursos e qual fatia da venda fica com a plataforma
+- "Faturamento" (`/admin/faturamento`): faturamento bruto, comissão retida e
+  repasse líquido, consolidado por professor — cada um com sua própria
+  porcentagem configurável
+
+**Preços, promoções e cursos grátis**
+- Um curso com `price = 0` aparece como "Grátis" no catálogo, na página do
+  curso e no checkout (sem cobrança)
+- Cada curso/combo pode ter um desconto próprio (%), que **substitui** a
+  promoção geral do site em vez de somar com ela
+- A promoção geral (ativada em `/admin`) se aplica a todo curso que não
+  tenha desconto próprio — o preço com desconto é o que fica registrado no
+  pedido no momento da compra (`src/lib/pricing.ts`)
+
+**Capas geradas automaticamente**
+- Curso sem imagem de capa enviada usa uma capa em SVG gerada na hora
+  (`/api/covers/[courseId]`) com título, categoria e subtítulo, em um dos
+  temas visuais disponíveis (tecnologia, carreira, dados, segurança
+  pública) — os temas são genéricos, sem qualquer brasão oficial ou
+  identidade de corporação policial/estadual real
+
+**Acesso manual e multi-professor**
+- Na página de edição de um curso, o professor/admin pode conceder acesso a
+  um aluno específico pelo e-mail, remover o acesso de qualquer aluno, ou
+  conceder para todos os alunos de uma vez — sem passar pelo checkout
+- Cada curso pertence a um professor (`Course.instructorId`); o painel
+  `/professor` mostra o faturamento bruto e líquido só dos cursos daquele
+  professor, já descontada a comissão da plataforma
 
 ## Rodando localmente
 
@@ -63,7 +107,7 @@ sem mexer em código.
 npm install
 cp .env.example .env        # ajuste os valores se quiser
 npm run db:migrate          # cria o banco SQLite e as tabelas
-npm run db:seed             # popula com usuários e 3 cursos de exemplo
+npm run db:seed             # popula com usuários e cursos de exemplo
 npm run dev
 ```
 
@@ -75,20 +119,29 @@ Acesse http://localhost:3000.
 |--------------|---------------------------|------------|
 | Aluna        | `aluno@exemplo.com`       | `senha123` |
 | Admin/Gestor | `wagner@rumoati.com.br`   | `senha123` |
+| Professora   | `carla@rumoati.com.br`    | `senha123` |
 
 A conta admin (Wagner) acumula os papéis de gestor de cursos e admin do
 site — acessa tanto `/professor` quanto `/admin`. A aluna já é matriculada
-em "Lógica de Programação do Zero" para você entrar direto no player. Os
-três cursos do seed demonstram os dois jeitos de reaproveitar conteúdo: o
-curso "Combo Iniciante em TI" não tem nenhuma aula própria — ele **inclui**
+em alguns cursos para você entrar direto no player. O seed cria cinco
+cursos para demonstrar as funcionalidades: "Combo Iniciante em TI" **inclui**
 os cursos "Lógica de Programação do Zero" e "Fundamentos de Redes e Linux"
-inteiros (a mesma mecânica da seção "Cursos incluídos" no editor de curso).
+inteiros (a mesma mecânica da seção "Cursos incluídos" no editor de curso);
+"Introdução à Segurança da Informação" é **grátis** e pertence à segunda
+professora (Carla), assim como "Hardening de Servidores Linux" (pago) — o
+que dá para conferir em `/admin/faturamento` que cada professor tem seu
+próprio faturamento e comissão (20% para Wagner, 15% para Carla).
 
 ## Estrutura de dados (Prisma)
 
 - `User` — papel `STUDENT`/`INSTRUCTOR`/`ADMIN`; `passwordHash` é opcional
-  (fica `null` para contas criadas via Google)
-- `Course` → `Module` → `Lesson` — hierarquia do conteúdo
+  (fica `null` para contas criadas via Google); `cpf` (único, dígitos-only,
+  validado matematicamente antes de salvar), `nickname`/`avatarUrl`/`bio`
+  para o perfil, e `platformFeePercent` (comissão da plataforma sobre as
+  vendas desse usuário quando ele é professor)
+- `Course` → `Module` → `Lesson` — hierarquia do conteúdo; `Course` também
+  tem `discountPercent` (desconto próprio, substitui a promoção geral) e
+  `coverTheme` (tema usado pela capa gerada quando não há upload)
 - `Video` — arquivo enviado uma vez; uma `Lesson` aponta para um `Video`, e o
   mesmo `Video` pode ser referenciado por `Lesson`s de cursos diferentes
   (é essa relação que permite reaproveitar aulas em novos produtos)
@@ -98,11 +151,17 @@ inteiros (a mesma mecânica da seção "Cursos incluídos" no editor de curso).
   `src/lib/data/courses.ts`) — matricular alguém no combo não duplica
   nenhuma aula, só soma o conteúdo dos cursos incluídos na hora de exibir
   e de checar permissão de streaming
+- `Comment` — comentário de um aluno em uma `Lesson`, com `visibility`
+  `PUBLIC` ou `PRIVATE`; professor/admin sempre veem todos, aluno vê os
+  públicos mais os seus próprios
 - `Order` / `Enrollment` — compra e liberação de acesso (com expiração por
-  `accessDays`)
+  `accessDays`); `Enrollment` também é criada/removida manualmente pelo
+  professor/admin (concessão de acesso sem checkout)
 - `LessonProgress` — progresso de cada aluno por aula
 - `SiteContent` — linha única com os textos/links editáveis pelo `/admin`
-  (listas como links de menu, redes sociais e FAQ ficam como JSON em texto)
+  (listas como links de menu, redes sociais e FAQ ficam como JSON em texto),
+  incluindo `heroVideoUrl` e os campos de promoção geral (`promoActive`,
+  `promoGlobalDiscount`, `promoBannerText`)
 
 SQLite não tem enum nativo, então `role` e `status` são strings com os
 valores definidos em `src/lib/constants.ts`.

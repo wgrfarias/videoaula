@@ -8,9 +8,16 @@ import { getSiteContent } from "@/lib/data/site-content";
 export default async function HomePage() {
   const [courses, content] = await Promise.all([getPublishedCourses(), getSiteContent()]);
   const featured = courses.slice(0, 3);
+  const promo = { promoActive: content.promoActive, promoGlobalDiscount: content.promoGlobalDiscount };
 
   return (
     <>
+      {content.promoActive && (
+        <div className="bg-accent-500 px-5 py-2.5 text-center text-sm font-semibold text-white">
+          {content.promoBannerText}
+        </div>
+      )}
+
       <section className="bg-hero-gradient text-white">
         <div className="mx-auto grid max-w-6xl gap-10 px-5 py-16 md:grid-cols-2 md:items-center md:py-24">
           <div>
@@ -41,9 +48,20 @@ export default async function HomePage() {
 
           <div className="relative">
             <div className="rounded-3xl bg-white/5 p-6 backdrop-blur-sm">
-              <div className="flex aspect-video items-center justify-center rounded-2xl bg-gradient-to-br from-brand-500 to-brand-800">
-                <PlayCircle className="h-16 w-16 text-white/90" />
-              </div>
+              {content.heroVideoUrl ? (
+                <video
+                  src={content.heroVideoUrl}
+                  className="aspect-video w-full rounded-2xl bg-black object-cover"
+                  autoPlay
+                  muted
+                  loop
+                  playsInline
+                />
+              ) : (
+                <div className="flex aspect-video items-center justify-center rounded-2xl bg-gradient-to-br from-brand-500 to-brand-800">
+                  <PlayCircle className="h-16 w-16 text-white/90" />
+                </div>
+              )}
               <ul className="mt-6 space-y-3 text-sm">
                 {[
                   "Aulas gravadas em vídeo, no seu tempo",
@@ -78,7 +96,7 @@ export default async function HomePage() {
 
         <div className="mt-8 grid gap-6 sm:grid-cols-2 lg:grid-cols-3">
           {featured.map((course) => (
-            <CourseCard key={course.id} course={course} />
+            <CourseCard key={course.id} course={course} promo={promo} />
           ))}
         </div>
 

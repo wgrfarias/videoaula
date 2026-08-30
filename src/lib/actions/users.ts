@@ -26,3 +26,17 @@ export async function setUserRole(userId: string, formData: FormData) {
 
   revalidatePath("/admin/usuarios");
 }
+
+export async function setPlatformFee(userId: string, formData: FormData) {
+  await requireAdmin();
+
+  const platformFeePercent = Math.min(100, Math.max(0, Number(formData.get("platformFeePercent")) || 0));
+
+  await prisma.user.update({
+    where: { id: userId },
+    data: { platformFeePercent },
+  });
+
+  revalidatePath("/admin/usuarios");
+  revalidatePath("/admin/faturamento");
+}

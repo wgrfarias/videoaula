@@ -3,6 +3,7 @@ import { updateSiteContent } from "@/lib/actions/site-content";
 import { Label, Input, Textarea } from "@/components/ui/input";
 import { Button } from "@/components/ui/button";
 import { Card } from "@/components/ui/card";
+import { HeroVideoField } from "@/components/admin/hero-video-field";
 
 export const metadata = { title: "Configurações do site | Admin" };
 
@@ -68,6 +69,43 @@ export default async function AdminSettingsPage() {
             <div>
               <Label htmlFor="heroStatLine">Linha de prova social</Label>
               <Input id="heroStatLine" name="heroStatLine" defaultValue={content.heroStatLine} />
+            </div>
+            <HeroVideoField defaultValue={content.heroVideoUrl ?? ""} />
+          </div>
+        </Card>
+
+        <Card className="p-6">
+          <h2 className="font-display font-semibold text-ink-900">Promoção</h2>
+          <p className="mt-1 text-xs text-ink-500">
+            Uma promoção do site inteiro aplica o desconto abaixo a todos os
+            cursos e combos que não tenham um desconto próprio configurado.
+          </p>
+          <div className="mt-4 space-y-4">
+            <label className="flex items-center gap-2 text-sm font-medium text-ink-700">
+              <input
+                type="checkbox"
+                name="promoActive"
+                defaultChecked={content.promoActive}
+                className="h-4 w-4 rounded border-ink-300"
+              />
+              Ativar promoção em todo o site
+            </label>
+            <div className="grid gap-4 sm:grid-cols-2">
+              <div>
+                <Label htmlFor="promoGlobalDiscount">Desconto global (%)</Label>
+                <Input
+                  id="promoGlobalDiscount"
+                  name="promoGlobalDiscount"
+                  type="number"
+                  min={0}
+                  max={99}
+                  defaultValue={content.promoGlobalDiscount}
+                />
+              </div>
+              <div>
+                <Label htmlFor="promoBannerText">Texto do banner de promoção</Label>
+                <Input id="promoBannerText" name="promoBannerText" defaultValue={content.promoBannerText} />
+              </div>
             </div>
           </div>
         </Card>

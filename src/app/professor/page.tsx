@@ -19,7 +19,12 @@ export default async function ProfessorDashboardPage() {
   const cards = [
     { label: "Cursos publicados", value: `${stats.publishedCourses}/${stats.totalCourses}`, icon: BookOpen },
     { label: "Alunos matriculados", value: stats.totalStudents, icon: Users },
-    { label: "Faturamento", value: formatCurrency(stats.revenue), icon: DollarSign },
+    { label: "Faturamento bruto", value: formatCurrency(stats.revenue), icon: DollarSign },
+    {
+      label: `Sua parte (comissão ${stats.platformFeePercent}%)`,
+      value: formatCurrency(stats.netRevenue),
+      icon: DollarSign,
+    },
   ];
 
   return (
@@ -37,7 +42,7 @@ export default async function ProfessorDashboardPage() {
         </div>
       </div>
 
-      <div className="mt-6 grid gap-4 sm:grid-cols-3">
+      <div className="mt-6 grid gap-4 sm:grid-cols-2 lg:grid-cols-4">
         {cards.map((c) => (
           <Card key={c.label} className="p-5">
             <div className="flex items-center gap-3">

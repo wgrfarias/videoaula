@@ -4,7 +4,9 @@ import { CheckCircle2, Clock, Lock, PlayCircle } from "lucide-react";
 import { LinkButton } from "@/components/ui/button";
 import { Badge, Card } from "@/components/ui/card";
 import { getCourseBySlug, courseStats, getEffectiveModules, getCoverSrc } from "@/lib/data/courses";
-import { formatDuration, formatInstallments } from "@/lib/utils";
+import { getSiteContent } from "@/lib/data/site-content";
+import { getEffectivePrice } from "@/lib/pricing";
+import { formatCurrency, formatDuration, formatInstallments } from "@/lib/utils";
 import { getCurrentUser } from "@/lib/session";
 import { prisma } from "@/lib/prisma";
 
@@ -23,6 +25,13 @@ export default async function CourseDetailPage({
         where: { userId_courseId: { userId: user.id, courseId: course.id } },
       })
     : null;
+
+  const content = await getSiteContent();
+  const isFree = course.price === 0;
+  const { effectivePrice, percent, hasDiscount } = getEffectivePrice(course, {
+    promoActive: content.promoActive,
+    promoGlobalDiscount: content.promoGlobalDiscount,
+  });
 
   const stats = courseStats(course);
   const modules = getEffectiveModules(course);
@@ -62,10 +71,22 @@ export default async function CourseDetailPage({
               <Image src={getCoverSrc(course)} alt={course.title} fill className="object-cover" unoptimized />
             </div>
             <div className="p-6">
-              <p className="font-display text-2xl font-bold text-brand-700">
-                {formatInstallments(course.price, course.installments)}
-              </p>
-              <p className="text-xs text-ink-500">ou à vista</p>
+              {isFree ? (
+                <p className="font-display text-2xl font-bold text-brand-700">Grátis</p>
+              ) : (
+                <>
+                  {hasDiscount && (
+                    <p className="flex items-center gap-2 text-sm text-ink-300">
+                      <span className="line-through">{formatCurrency(course.price)}</span>
+                      <Badge tone="accent" className="bg-accent-500 text-white">-{percent}%</Badge>
+                    </p>
+                  )}
+                  <p className="font-display text-2xl font-bold text-brand-700">
+                    {formatInstallments(effectivePrice, course.installments)}
+                  </p>
+                  <p className="text-xs text-ink-500">ou à vista</p>
+                </>
+              )}
 
               <div className="mt-5">
                 {enrollment ? (
@@ -74,7 +95,7 @@ export default async function CourseDetailPage({
                   </LinkButton>
                 ) : (
                   <LinkButton href={`/checkout/${course.slug}`} className="w-full">
-                    Comprar agora
+                    {isFree ? "Assistir grátis" : "Comprar agora"}
                   </LinkButton>
                 )}
               </div>

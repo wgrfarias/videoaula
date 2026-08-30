@@ -3,6 +3,8 @@ import { z } from "zod";
 import { auth } from "@/lib/auth";
 import { prisma } from "@/lib/prisma";
 import { ORDER_STATUS } from "@/lib/constants";
+import { getSiteContent } from "@/lib/data/site-content";
+import { getEffectivePrice } from "@/lib/pricing";
 
 // Demo/instant-paid checkout: creates a PAID order and grants enrollment
 // immediately. Swap the body of this handler for a real gateway (e.g. Stripe
@@ -38,10 +40,16 @@ export async function POST(request: Request) {
     return NextResponse.json({ ok: true, alreadyEnrolled: true, slug: course.slug });
   }
 
+  const content = await getSiteContent();
+  const { effectivePrice } = getEffectivePrice(course, {
+    promoActive: content.promoActive,
+    promoGlobalDiscount: content.promoGlobalDiscount,
+  });
+
   await prisma.$transaction([
     prisma.order.create({
       data: {
-        amount: course.price,
+        amount: effectivePrice,
         status: ORDER_STATUS.PAID,
         provider: "demo",
         paidAt: new Date(),

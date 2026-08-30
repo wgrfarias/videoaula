@@ -1,6 +1,6 @@
 import { notFound } from "next/navigation";
 import Link from "next/link";
-import { ArrowDown, ArrowUp, Lock, Package, Trash2, Unlock, X } from "lucide-react";
+import { ArrowDown, ArrowUp, Lock, Package, Trash2, Unlock, UserPlus, Users, X } from "lucide-react";
 import { requireInstructor } from "@/lib/session";
 import {
   getInstructorCourse,
@@ -27,6 +27,11 @@ import {
   addCourseToBundle,
   removeCourseFromBundle,
 } from "@/lib/actions/courses";
+import {
+  grantEnrollmentByEmail,
+  revokeEnrollment,
+  grantEnrollmentToAllStudents,
+} from "@/lib/actions/enrollments";
 import { formatDuration } from "@/lib/utils";
 
 export default async function EditCoursePage({
@@ -52,6 +57,8 @@ export default async function EditCoursePage({
   const updateCourseWithId = updateCourse.bind(null, course.id);
   const createModuleWithId = createModule.bind(null, course.id);
   const addCourseToBundleWithId = addCourseToBundle.bind(null, course.id);
+  const grantEnrollmentWithId = grantEnrollmentByEmail.bind(null, course.id);
+  const grantAllWithId = grantEnrollmentToAllStudents.bind(null, course.id);
 
   return (
     <div className="mx-auto max-w-4xl space-y-8">
@@ -113,7 +120,23 @@ export default async function EditCoursePage({
               <Label htmlFor="accessDays">Acesso (dias)</Label>
               <Input id="accessDays" name="accessDays" type="number" min="1" defaultValue={course.accessDays} />
             </div>
+            <div>
+              <Label htmlFor="discountPercent">Desconto próprio (%)</Label>
+              <Input
+                id="discountPercent"
+                name="discountPercent"
+                type="number"
+                min="0"
+                max="99"
+                defaultValue={course.discountPercent}
+              />
+            </div>
           </div>
+          <p className="text-xs text-ink-500">
+            Deixe em 0 para preço cheio (ou seguir a promoção do site, se
+            houver uma ativa). Um desconto aqui vale só para este curso e
+            substitui a promoção geral.
+          </p>
           <div>
             <Label htmlFor="categoryId">Categoria</Label>
             <CategorySelect categories={categories} defaultValue={course.categoryId ?? ""} />
@@ -197,6 +220,57 @@ export default async function EditCoursePage({
               crie outro curso primeiro.
             </p>
           )
+        )}
+      </Card>
+
+      <Card className="p-6">
+        <div className="flex items-center gap-2">
+          <Users className="h-5 w-5 text-brand-600" />
+          <h2 className="font-display font-semibold text-ink-900">Acesso de alunos</h2>
+        </div>
+        <p className="mt-1 text-sm text-ink-500">
+          Conceda ou remova acesso manualmente, sem passar pelo checkout —
+          útil para cortesias, reposições ou parcerias.
+        </p>
+
+        <div className="mt-4 flex flex-col gap-3 sm:flex-row">
+          <form action={grantEnrollmentWithId} className="flex flex-1 gap-2">
+            <Input name="email" type="email" placeholder="email@aluno.com" required />
+            <Button type="submit" className="shrink-0">
+              <UserPlus className="mr-1.5 h-4 w-4" /> Conceder
+            </Button>
+          </form>
+          <form action={grantAllWithId}>
+            <Button type="submit" variant="outline" className="w-full sm:w-auto">
+              Conceder para todos os alunos
+            </Button>
+          </form>
+        </div>
+
+        {course.enrollments.length > 0 ? (
+          <ul className="mt-4 divide-y divide-ink-900/5">
+            {course.enrollments.map((enrollment) => (
+              <li key={enrollment.id} className="flex items-center justify-between gap-3 py-2.5">
+                <div>
+                  <p className="text-sm font-medium text-ink-900">
+                    {enrollment.user.nickname || enrollment.user.name}
+                  </p>
+                  <p className="text-xs text-ink-500">{enrollment.user.email}</p>
+                </div>
+                <form action={revokeEnrollment.bind(null, course.id, enrollment.userId)}>
+                  <button
+                    type="submit"
+                    title="Remover acesso"
+                    className="rounded-lg p-1.5 text-accent-600 hover:bg-accent-400/10"
+                  >
+                    <X className="h-4 w-4" />
+                  </button>
+                </form>
+              </li>
+            ))}
+          </ul>
+        ) : (
+          <p className="mt-4 text-xs text-ink-300">Nenhum aluno com acesso a este curso ainda.</p>
         )}
       </Card>
 

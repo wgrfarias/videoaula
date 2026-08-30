@@ -1,5 +1,6 @@
 import { CourseCard } from "@/components/site/course-card";
 import { getCategories, getPublishedCourses } from "@/lib/data/courses";
+import { getSiteContent } from "@/lib/data/site-content";
 
 export const metadata = {
   title: "Cursos | Rumo à TI com Wagner Farias",
@@ -11,10 +12,12 @@ export default async function CoursesPage({
   searchParams: Promise<{ q?: string; categoria?: string }>;
 }) {
   const { q, categoria } = await searchParams;
-  const [courses, categories] = await Promise.all([
+  const [courses, categories, content] = await Promise.all([
     getPublishedCourses({ query: q, categorySlug: categoria }),
     getCategories(),
+    getSiteContent(),
   ]);
+  const promo = { promoActive: content.promoActive, promoGlobalDiscount: content.promoGlobalDiscount };
 
   return (
     <div className="mx-auto max-w-6xl px-5 py-12">
@@ -53,7 +56,7 @@ export default async function CoursesPage({
 
       <div className="mt-10 grid gap-6 sm:grid-cols-2 lg:grid-cols-3">
         {courses.map((course) => (
-          <CourseCard key={course.id} course={course} />
+          <CourseCard key={course.id} course={course} promo={promo} />
         ))}
       </div>
 

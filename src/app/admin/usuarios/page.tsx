@@ -1,8 +1,9 @@
 import { requireAdmin } from "@/lib/session";
 import { prisma } from "@/lib/prisma";
-import { setUserRole } from "@/lib/actions/users";
+import { setUserRole, setPlatformFee } from "@/lib/actions/users";
 import { Card, Badge } from "@/components/ui/card";
 import { GoogleIcon } from "@/components/site/google-icon";
+import { ROLES } from "@/lib/constants";
 
 export const metadata = { title: "Usuários | Admin" };
 
@@ -23,6 +24,7 @@ export default async function AdminUsersPage() {
       role: true,
       passwordHash: true,
       createdAt: true,
+      platformFeePercent: true,
     },
   });
 
@@ -43,6 +45,7 @@ export default async function AdminUsersPage() {
                 <th className="px-4 py-3 font-semibold">Usuário</th>
                 <th className="px-4 py-3 font-semibold">Login</th>
                 <th className="px-4 py-3 font-semibold">Papel</th>
+                <th className="px-4 py-3 font-semibold">Comissão da plataforma</th>
                 <th className="px-4 py-3"></th>
               </tr>
             </thead>
@@ -90,6 +93,30 @@ export default async function AdminUsersPage() {
                             Salvar
                           </button>
                         </form>
+                      )}
+                    </td>
+                    <td className="px-4 py-3">
+                      {user.role === ROLES.INSTRUCTOR || user.role === ROLES.ADMIN ? (
+                        <form action={setPlatformFee.bind(null, user.id)} className="flex items-center gap-2">
+                          <input
+                            key={user.platformFeePercent}
+                            name="platformFeePercent"
+                            type="number"
+                            min={0}
+                            max={100}
+                            defaultValue={user.platformFeePercent}
+                            className="w-16 rounded-lg border border-ink-300/40 bg-surface px-2 py-1.5 text-xs outline-none focus:border-brand-500"
+                          />
+                          <span className="text-xs text-ink-500">%</span>
+                          <button
+                            type="submit"
+                            className="rounded-lg bg-brand-600 px-3 py-1.5 text-xs font-semibold text-white hover:bg-brand-700"
+                          >
+                            Salvar
+                          </button>
+                        </form>
+                      ) : (
+                        <span className="text-xs text-ink-300">—</span>
                       )}
                     </td>
                   </tr>

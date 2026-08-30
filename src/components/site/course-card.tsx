@@ -2,8 +2,9 @@ import Image from "next/image";
 import Link from "next/link";
 import { Clock, PlayCircle } from "lucide-react";
 import { Card, Badge } from "@/components/ui/card";
-import { formatDuration, formatInstallments } from "@/lib/utils";
+import { formatCurrency, formatDuration, formatInstallments } from "@/lib/utils";
 import { courseStats, getCoverSrc } from "@/lib/data/courses";
+import { getEffectivePrice, type PromoSettings } from "@/lib/pricing";
 
 type CourseCardData = {
   id: string;
@@ -12,6 +13,7 @@ type CourseCardData = {
   subtitle: string | null;
   coverImageUrl: string | null;
   price: number;
+  discountPercent: number;
   installments: number;
   accessDays: number;
   category: { name: string } | null;
@@ -30,8 +32,10 @@ type CourseCardData = {
   }[];
 };
 
-export function CourseCard({ course }: { course: CourseCardData }) {
+export function CourseCard({ course, promo }: { course: CourseCardData; promo: PromoSettings }) {
   const stats = courseStats(course);
+  const isFree = course.price === 0;
+  const { effectivePrice, percent, hasDiscount } = getEffectivePrice(course, promo);
 
   return (
     <Link href={`/cursos/${course.slug}`} className="group block">
@@ -48,6 +52,17 @@ export function CourseCard({ course }: { course: CourseCardData }) {
             <span className="absolute left-3 top-3">
               <Badge tone="accent" className="bg-white/90">{course.category.name}</Badge>
             </span>
+          )}
+          {isFree ? (
+            <span className="absolute right-3 top-3">
+              <Badge tone="success">Grátis</Badge>
+            </span>
+          ) : (
+            hasDiscount && (
+              <span className="absolute right-3 top-3">
+                <Badge tone="accent" className="bg-accent-500 text-white">-{percent}%</Badge>
+              </span>
+            )
           )}
         </div>
 
@@ -69,9 +84,20 @@ export function CourseCard({ course }: { course: CourseCardData }) {
           </div>
 
           <div className="mt-4 flex items-center justify-between border-t border-ink-900/5 pt-4">
-            <span className="font-display text-base font-bold text-brand-700">
-              {formatInstallments(course.price, course.installments)}
-            </span>
+            {isFree ? (
+              <span className="font-display text-base font-bold text-brand-700">Grátis</span>
+            ) : (
+              <span className="flex flex-col">
+                {hasDiscount && (
+                  <span className="text-xs text-ink-300 line-through">
+                    {formatCurrency(course.price)}
+                  </span>
+                )}
+                <span className="font-display text-base font-bold text-brand-700">
+                  {formatInstallments(effectivePrice, course.installments)}
+                </span>
+              </span>
+            )}
             <span className="text-sm font-semibold text-accent-500 group-hover:underline">
               Ver curso →
             </span>

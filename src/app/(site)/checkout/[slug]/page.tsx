@@ -1,10 +1,12 @@
 import Image from "next/image";
 import { notFound, redirect } from "next/navigation";
 import { getCourseBySlug, getCoverSrc } from "@/lib/data/courses";
+import { getSiteContent } from "@/lib/data/site-content";
+import { getEffectivePrice } from "@/lib/pricing";
 import { getCurrentUser } from "@/lib/session";
 import { prisma } from "@/lib/prisma";
 import { Card } from "@/components/ui/card";
-import { formatInstallments } from "@/lib/utils";
+import { formatCurrency, formatInstallments } from "@/lib/utils";
 import { CheckoutButton } from "@/components/site/checkout-button";
 
 export default async function CheckoutPage({
@@ -28,6 +30,13 @@ export default async function CheckoutPage({
     redirect(`/aluno/cursos/${course.slug}`);
   }
 
+  const content = await getSiteContent();
+  const isFree = course.price === 0;
+  const { effectivePrice, hasDiscount } = getEffectivePrice(course, {
+    promoActive: content.promoActive,
+    promoGlobalDiscount: content.promoGlobalDiscount,
+  });
+
   return (
     <div className="mx-auto max-w-lg px-5 py-16">
       <h1 className="font-display text-2xl font-bold text-ink-900">Finalizar compra</h1>
@@ -45,8 +54,15 @@ export default async function CheckoutPage({
 
           <div className="mt-5 flex items-center justify-between border-t border-ink-900/5 pt-4">
             <span className="text-sm text-ink-500">Total</span>
-            <span className="font-display text-xl font-bold text-brand-700">
-              {formatInstallments(course.price, course.installments)}
+            <span className="flex items-center gap-2">
+              {hasDiscount && (
+                <span className="text-sm text-ink-300 line-through">
+                  {formatCurrency(course.price)}
+                </span>
+              )}
+              <span className="font-display text-xl font-bold text-brand-700">
+                {isFree ? "Grátis" : formatInstallments(effectivePrice, course.installments)}
+              </span>
             </span>
           </div>
 
