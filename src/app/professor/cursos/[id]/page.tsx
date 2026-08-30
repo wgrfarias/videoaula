@@ -8,6 +8,7 @@ import { Label, Input, Textarea } from "@/components/ui/input";
 import { Button } from "@/components/ui/button";
 import { AddLessonForm } from "@/components/instructor/add-lesson-form";
 import { CoverImageField } from "@/components/instructor/cover-image-field";
+import { CategorySelect } from "@/components/instructor/category-select";
 import {
   updateCourse,
   togglePublish,
@@ -97,19 +98,7 @@ export default async function EditCoursePage({
           </div>
           <div>
             <Label htmlFor="categoryId">Categoria</Label>
-            <select
-              id="categoryId"
-              name="categoryId"
-              defaultValue={course.categoryId ?? ""}
-              className="w-full rounded-xl border border-ink-300/40 bg-surface px-4 py-2.5 text-sm outline-none focus:border-brand-500 focus:ring-2 focus:ring-brand-500/20"
-            >
-              <option value="">Sem categoria</option>
-              {categories.map((c) => (
-                <option key={c.id} value={c.id}>
-                  {c.name}
-                </option>
-              ))}
-            </select>
+            <CategorySelect categories={categories} defaultValue={course.categoryId ?? ""} />
           </div>
           <Button type="submit">Salvar alterações</Button>
         </form>

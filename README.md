@@ -10,8 +10,8 @@ sem mexer em código.
 
 - **Next.js 16** (App Router, Server Actions) + TypeScript + Tailwind CSS v4
 - **Prisma** + SQLite (fácil de trocar por Postgres em produção)
-- **NextAuth v5** (Credentials) com sessão JWT e controle de papéis
-  (`STUDENT`, `INSTRUCTOR`, `ADMIN`)
+- **NextAuth v5** (Credentials + Google OAuth opcional) com sessão JWT e
+  controle de papéis (`STUDENT`, `INSTRUCTOR`, `ADMIN`)
 - **next-themes** para o tema claro/escuro (persistido por navegador, com
   opção de seguir o tema do sistema)
 - Upload e streaming de vídeo em disco local, com checagem de matrícula e
@@ -23,7 +23,7 @@ sem mexer em código.
 - Home e catálogo de cursos (`/cursos`) com busca e filtro por categoria
 - Página de curso com conteúdo programático, aulas grátis de demonstração e
   compra
-- Cadastro/login de aluno
+- Cadastro/login por e-mail e senha, ou por conta Google (se configurado)
 - Alternância de tema claro/escuro (botão no menu)
 
 **Área do aluno (`/aluno`)**
@@ -35,17 +35,23 @@ sem mexer em código.
 - Visão geral (cursos publicados, alunos, faturamento)
 - Biblioteca de vídeos: upload de aulas, com indicação de em quais cursos
   cada vídeo já é usado
-- Criação/edição de cursos: informações, preço, capa, módulos e aulas
+- Criação/edição de cursos: informações, preço, capa, categoria, módulos e
+  aulas — a categoria pode ser escolhida numa lista existente ou criada na
+  hora, direto do formulário do curso
 - Ao adicionar uma aula, é possível **enviar um vídeo novo ou reaproveitar
   qualquer vídeo já enviado** (inclusive de outro curso) — é assim que um
   "combo" reaproveita aulas de dois cursos existentes, como no curso de
   demonstração já incluído no seed
 
 **Admin (`/admin`, papel `ADMIN`)**
-- Painel de "Conteúdo do site": nome/assinatura da marca, textos e botões do
-  topo da home, texto e título da página Sobre, perguntas frequentes, links
-  do menu/rodapé e redes sociais — tudo editável sem precisar mexer em código
-  e refletido nas páginas públicas assim que salvo
+- "Conteúdo do site": nome/assinatura da marca, textos e botões do topo da
+  home, texto e título da página Sobre, perguntas frequentes, links do
+  menu/rodapé e redes sociais — tudo editável sem precisar mexer em código e
+  refletido nas páginas públicas assim que salvo
+- "Usuários" (`/admin/usuarios`): lista todas as contas (criadas por e-mail
+  ou por Google) e permite trocar o papel de qualquer uma entre Aluno,
+  Professor/gestor de cursos e Admin — é assim que o admin master decide
+  quem tem acesso ao painel de cursos, sem precisar mexer no banco
 
 ## Rodando localmente
 
@@ -76,7 +82,8 @@ precisar reenviar nenhum arquivo.
 
 ## Estrutura de dados (Prisma)
 
-- `User` — papel `STUDENT`/`INSTRUCTOR`/`ADMIN`
+- `User` — papel `STUDENT`/`INSTRUCTOR`/`ADMIN`; `passwordHash` é opcional
+  (fica `null` para contas criadas via Google)
 - `Course` → `Module` → `Lesson` — hierarquia do conteúdo
 - `Video` — arquivo enviado uma vez; uma `Lesson` aponta para um `Video`, e o
   mesmo `Video` pode ser referenciado por `Lesson`s de cursos diferentes
@@ -99,6 +106,29 @@ componentes usam só os nomes dos tokens (`bg-surface`, `text-ink-900`,
 `bg-background`, etc.), então não precisam de classes `dark:` espalhadas
 pelo código. O botão de alternância fica no menu (site) e na barra lateral
 dos painéis internos.
+
+## Login com Google (opcional)
+
+Por padrão só o login por e-mail/senha fica ativo. Para habilitar "Entrar com
+Google" em `/entrar` e `/cadastro`:
+
+1. Acesse o [Google Cloud Console](https://console.cloud.google.com/apis/credentials)
+   e crie um projeto (ou use um existente).
+2. Configure a "OAuth consent screen" (tipo Externo está ok para testes).
+3. Crie uma credencial do tipo **OAuth client ID** → **Web application**.
+4. Em "Authorized redirect URIs", adicione:
+   - Local: `http://localhost:3000/api/auth/callback/google`
+   - Produção: `https://SEU-DOMINIO/api/auth/callback/google`
+5. Copie o Client ID e o Client Secret gerados para o `.env`:
+   ```bash
+   GOOGLE_CLIENT_ID="..."
+   GOOGLE_CLIENT_SECRET="..."
+   ```
+6. Reinicie `npm run dev`.
+
+Toda conta criada via Google entra automaticamente como `STUDENT` — para dar
+acesso ao painel de cursos, promova a conta em `/admin/usuarios` depois que
+a pessoa fizer login pela primeira vez (é só assim que ela aparece na lista).
 
 ## Upload e streaming de vídeo
 

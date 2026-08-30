@@ -5,8 +5,9 @@ import { signIn } from "next-auth/react";
 import { useRouter } from "next/navigation";
 import { Label, Input, FieldError } from "@/components/ui/input";
 import { Button } from "@/components/ui/button";
+import { GoogleIcon } from "@/components/site/google-icon";
 
-export function RegisterForm() {
+export function RegisterForm({ googleEnabled }: { googleEnabled?: boolean }) {
   const router = useRouter();
   const [loading, setLoading] = useState(false);
   const [error, setError] = useState<string | null>(null);
@@ -55,6 +56,23 @@ export function RegisterForm() {
 
   return (
     <form onSubmit={handleSubmit} className="mt-8 space-y-4">
+      {googleEnabled && (
+        <>
+          <button
+            type="button"
+            onClick={() => signIn("google", { callbackUrl: "/aluno" })}
+            className="flex w-full items-center justify-center gap-2.5 rounded-full border border-ink-300/40 bg-surface py-2.5 text-sm font-semibold text-ink-900 transition hover:bg-surface-alt"
+          >
+            <GoogleIcon className="h-4 w-4" />
+            Criar conta com Google
+          </button>
+          <div className="flex items-center gap-3 text-xs text-ink-300">
+            <span className="h-px flex-1 bg-ink-300/30" /> ou use seu e-mail
+            <span className="h-px flex-1 bg-ink-300/30" />
+          </div>
+        </>
+      )}
+
       <div>
         <Label htmlFor="name">Nome completo</Label>
         <Input id="name" name="name" required placeholder="Seu nome" />

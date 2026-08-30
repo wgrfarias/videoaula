@@ -6,6 +6,31 @@ import { prisma } from "@/lib/prisma";
 import { requireInstructor } from "@/lib/session";
 import { slugify } from "@/lib/utils";
 
+export async function createCategory(name: string) {
+  await requireInstructor();
+
+  const trimmed = name.trim();
+  if (!trimmed) throw new Error("Informe um nome para a categoria");
+
+  const existing = await prisma.category.findUnique({ where: { name: trimmed } });
+  if (existing) return existing;
+
+  const baseSlug = slugify(trimmed);
+  let slug = baseSlug;
+  let n = 1;
+  while (await prisma.category.findUnique({ where: { slug } })) {
+    slug = `${baseSlug}-${++n}`;
+  }
+
+  const category = await prisma.category.create({
+    data: { name: trimmed, slug },
+  });
+
+  revalidatePath("/professor/cursos/novo");
+  revalidatePath("/cursos");
+  return category;
+}
+
 async function assertOwnsCourse(courseId: string, userId: string, isAdmin: boolean) {
   const course = await prisma.course.findUnique({ where: { id: courseId } });
   if (!course) throw new Error("Curso não encontrado");

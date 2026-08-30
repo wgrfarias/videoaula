@@ -10,6 +10,7 @@ export default async function AdminLayout({ children }: { children: React.ReactN
       userName={user.name ?? user.email ?? ""}
       navItems={[
         { href: "/admin", label: "Conteúdo do site", icon: "settings", exact: true },
+        { href: "/admin/usuarios", label: "Usuários", icon: "users" },
         { href: "/professor", label: "Painel de cursos", icon: "book" },
       ]}
     >

@@ -3,7 +3,7 @@
 import Link from "next/link";
 import { usePathname } from "next/navigation";
 import { signOut } from "next-auth/react";
-import { BookOpen, LayoutDashboard, LogOut, Settings, Video } from "lucide-react";
+import { BookOpen, LayoutDashboard, LogOut, Settings, Users, Video } from "lucide-react";
 import { cn } from "@/lib/utils";
 import { LogoMark } from "@/components/site/logo";
 import { ThemeToggle } from "@/components/site/theme-toggle";
@@ -13,6 +13,7 @@ const ICONS = {
   book: BookOpen,
   video: Video,
   settings: Settings,
+  users: Users,
 } as const;
 
 export type DashboardNavItem = {

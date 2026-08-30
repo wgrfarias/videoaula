@@ -3,6 +3,7 @@ import { createCourse } from "@/lib/actions/courses";
 import { Label, Input, Textarea } from "@/components/ui/input";
 import { Button } from "@/components/ui/button";
 import { Card } from "@/components/ui/card";
+import { CategorySelect } from "@/components/instructor/category-select";
 
 export const metadata = { title: "Novo curso | Painel de cursos" };
 
@@ -49,18 +50,7 @@ export default async function NewCoursePage() {
 
           <div>
             <Label htmlFor="categoryId">Categoria</Label>
-            <select
-              id="categoryId"
-              name="categoryId"
-              className="w-full rounded-xl border border-ink-300/40 bg-surface px-4 py-2.5 text-sm outline-none focus:border-brand-500 focus:ring-2 focus:ring-brand-500/20"
-            >
-              <option value="">Sem categoria</option>
-              {categories.map((c) => (
-                <option key={c.id} value={c.id}>
-                  {c.name}
-                </option>
-              ))}
-            </select>
+            <CategorySelect categories={categories} />
           </div>
 
           <Button type="submit" className="w-full">
