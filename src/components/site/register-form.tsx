@@ -6,15 +6,27 @@ import { useRouter } from "next/navigation";
 import { Label, Input, FieldError } from "@/components/ui/input";
 import { Button } from "@/components/ui/button";
 import { GoogleIcon } from "@/components/site/google-icon";
+import { formatCPF, isValidCPF } from "@/lib/cpf";
 
 export function RegisterForm({ googleEnabled }: { googleEnabled?: boolean }) {
   const router = useRouter();
   const [loading, setLoading] = useState(false);
   const [error, setError] = useState<string | null>(null);
+  const [cpf, setCpf] = useState("");
+  const [cpfTouched, setCpfTouched] = useState(false);
+
+  const cpfValid = cpf.length === 0 || isValidCPF(cpf);
 
   async function handleSubmit(e: React.FormEvent<HTMLFormElement>) {
     e.preventDefault();
     setError(null);
+
+    if (!isValidCPF(cpf)) {
+      setCpfTouched(true);
+      setError("Informe um CPF válido.");
+      return;
+    }
+
     setLoading(true);
 
     const formData = new FormData(e.currentTarget);
@@ -22,6 +34,7 @@ export function RegisterForm({ googleEnabled }: { googleEnabled?: boolean }) {
       name: formData.get("name"),
       email: formData.get("email"),
       password: formData.get("password"),
+      cpf,
     };
 
     const res = await fetch("/api/register", {
@@ -80,6 +93,25 @@ export function RegisterForm({ googleEnabled }: { googleEnabled?: boolean }) {
       <div>
         <Label htmlFor="email">E-mail</Label>
         <Input id="email" name="email" type="email" required placeholder="voce@email.com" />
+      </div>
+      <div>
+        <Label htmlFor="cpf">CPF</Label>
+        <Input
+          id="cpf"
+          name="cpf"
+          required
+          inputMode="numeric"
+          placeholder="000.000.000-00"
+          value={formatCPF(cpf)}
+          onChange={(e) => setCpf(e.target.value.replace(/\D/g, "").slice(0, 11))}
+          onBlur={() => setCpfTouched(true)}
+        />
+        {cpfTouched && !cpfValid && (
+          <FieldError>CPF inválido — confira os números digitados.</FieldError>
+        )}
+        <p className="mt-1 text-xs text-ink-300">
+          Usado para identificar sua conta e proteger o conteúdo dos vídeos.
+        </p>
       </div>
       <div>
         <Label htmlFor="password">Senha</Label>

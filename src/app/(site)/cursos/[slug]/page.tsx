@@ -3,7 +3,7 @@ import { notFound } from "next/navigation";
 import { CheckCircle2, Clock, Lock, PlayCircle } from "lucide-react";
 import { LinkButton } from "@/components/ui/button";
 import { Badge, Card } from "@/components/ui/card";
-import { getCourseBySlug, courseStats, getEffectiveModules } from "@/lib/data/courses";
+import { getCourseBySlug, courseStats, getEffectiveModules, getCoverSrc } from "@/lib/data/courses";
 import { formatDuration, formatInstallments } from "@/lib/utils";
 import { getCurrentUser } from "@/lib/session";
 import { prisma } from "@/lib/prisma";
@@ -59,15 +59,7 @@ export default async function CourseDetailPage({
 
           <Card className="overflow-hidden">
             <div className="relative aspect-video w-full bg-brand-800">
-              {course.coverImageUrl && (
-                <Image
-                  src={course.coverImageUrl}
-                  alt={course.title}
-                  fill
-                  className="object-cover"
-                  unoptimized
-                />
-              )}
+              <Image src={getCoverSrc(course)} alt={course.title} fill className="object-cover" unoptimized />
             </div>
             <div className="p-6">
               <p className="font-display text-2xl font-bold text-brand-700">

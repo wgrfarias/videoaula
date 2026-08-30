@@ -12,6 +12,7 @@ export default async function ProfessorLayout({ children }: { children: React.Re
         { href: "/professor", label: "Visão geral", icon: "dashboard", exact: true },
         { href: "/professor/cursos", label: "Meus cursos", icon: "book" },
         { href: "/professor/videos", label: "Biblioteca de vídeos", icon: "video" },
+        { href: "/aluno/perfil", label: "Meu perfil", icon: "profile" },
       ]}
     >
       {children}

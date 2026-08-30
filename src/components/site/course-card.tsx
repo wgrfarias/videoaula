@@ -3,9 +3,10 @@ import Link from "next/link";
 import { Clock, PlayCircle } from "lucide-react";
 import { Card, Badge } from "@/components/ui/card";
 import { formatDuration, formatInstallments } from "@/lib/utils";
-import { courseStats } from "@/lib/data/courses";
+import { courseStats, getCoverSrc } from "@/lib/data/courses";
 
 type CourseCardData = {
+  id: string;
   slug: string;
   title: string;
   subtitle: string | null;
@@ -36,15 +37,13 @@ export function CourseCard({ course }: { course: CourseCardData }) {
     <Link href={`/cursos/${course.slug}`} className="group block">
       <Card className="h-full overflow-hidden transition-shadow group-hover:shadow-lg group-hover:shadow-brand-900/10">
         <div className="relative aspect-video w-full overflow-hidden bg-brand-800">
-          {course.coverImageUrl && (
-            <Image
-              src={course.coverImageUrl}
-              alt={course.title}
-              fill
-              className="object-cover transition-transform duration-300 group-hover:scale-105"
-              unoptimized
-            />
-          )}
+          <Image
+            src={getCoverSrc(course)}
+            alt={course.title}
+            fill
+            className="object-cover transition-transform duration-300 group-hover:scale-105"
+            unoptimized
+          />
           {course.category && (
             <span className="absolute left-3 top-3">
               <Badge tone="accent" className="bg-white/90">{course.category.name}</Badge>

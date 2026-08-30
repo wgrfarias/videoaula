@@ -41,6 +41,11 @@ yarn-error.log*
 # uploaded media (instructor uploads at runtime; demo assets under covers/ and sample.mp4 are tracked)
 /public/uploads/videos/*
 !/public/uploads/videos/sample.mp4
+/public/uploads/covers/*
+!/public/uploads/covers/curso-logica.svg
+!/public/uploads/covers/curso-redes.svg
+!/public/uploads/covers/curso-combo.svg
+/public/uploads/avatars/*
 
 # vercel
 .vercel

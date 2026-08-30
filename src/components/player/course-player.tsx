@@ -4,6 +4,8 @@ import { useMemo, useRef, useState } from "react";
 import { CheckCircle2, Circle, PlayCircle } from "lucide-react";
 import { cn, formatDuration } from "@/lib/utils";
 import { Badge } from "@/components/ui/card";
+import { formatCPF } from "@/lib/cpf";
+import { LessonComments } from "@/components/player/lesson-comments";
 
 type Lesson = {
   id: string;
@@ -35,9 +37,13 @@ type ProgressEntry = {
 export function CoursePlayer({
   course,
   progress,
+  watermarkCpf,
+  viewerId,
 }: {
   course: Course;
   progress: ProgressEntry[];
+  watermarkCpf?: string | null;
+  viewerId: string;
 }) {
   const allLessons = useMemo(() => course.modules.flatMap((m) => m.lessons), [course]);
   const progressMap = useMemo(() => {
@@ -96,7 +102,7 @@ export function CoursePlayer({
       <div>
         <h1 className="font-display text-xl font-bold text-ink-900">{course.title}</h1>
 
-        <div className="mt-4 overflow-hidden rounded-2xl bg-black">
+        <div className="relative mt-4 overflow-hidden rounded-2xl bg-black">
           {currentLesson?.videoId ? (
             <video
               key={currentLesson.id}
@@ -110,6 +116,11 @@ export function CoursePlayer({
             <div className="flex aspect-video w-full items-center justify-center text-white/60">
               Selecione uma aula
             </div>
+          )}
+          {watermarkCpf && currentLesson?.videoId && (
+            <span className="pointer-events-none absolute bottom-3 right-3 rounded bg-black/40 px-2 py-1 font-mono text-[11px] font-medium tracking-wide text-white/70 backdrop-blur-sm">
+              {formatCPF(watermarkCpf)}
+            </span>
           )}
         </div>
 
@@ -135,6 +146,8 @@ export function CoursePlayer({
             {currentLesson.description && (
               <p className="mt-2 text-sm text-ink-500">{currentLesson.description}</p>
             )}
+
+            <LessonComments lessonId={currentLesson.id} viewerId={viewerId} />
           </div>
         )}
       </div>

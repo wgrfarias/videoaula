@@ -11,6 +11,7 @@ export default async function AlunoLayout({ children }: { children: React.ReactN
       navItems={[
         { href: "/aluno", label: "Meus cursos", icon: "dashboard", exact: true },
         { href: "/cursos", label: "Catálogo de cursos", icon: "book" },
+        { href: "/aluno/perfil", label: "Meu perfil", icon: "profile" },
       ]}
     >
       {children}

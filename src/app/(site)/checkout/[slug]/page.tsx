@@ -1,6 +1,6 @@
 import Image from "next/image";
 import { notFound, redirect } from "next/navigation";
-import { getCourseBySlug } from "@/lib/data/courses";
+import { getCourseBySlug, getCoverSrc } from "@/lib/data/courses";
 import { getCurrentUser } from "@/lib/session";
 import { prisma } from "@/lib/prisma";
 import { Card } from "@/components/ui/card";
@@ -37,15 +37,7 @@ export default async function CheckoutPage({
 
       <Card className="mt-8 overflow-hidden">
         <div className="relative aspect-video w-full bg-brand-800">
-          {course.coverImageUrl && (
-            <Image
-              src={course.coverImageUrl}
-              alt={course.title}
-              fill
-              className="object-cover"
-              unoptimized
-            />
-          )}
+          <Image src={getCoverSrc(course)} alt={course.title} fill className="object-cover" unoptimized />
         </div>
         <div className="p-6">
           <h2 className="font-display font-semibold text-ink-900">{course.title}</h2>

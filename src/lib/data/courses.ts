@@ -1,5 +1,9 @@
 import { prisma } from "@/lib/prisma";
 
+export function getCoverSrc(course: { id: string; coverImageUrl: string | null }) {
+  return course.coverImageUrl || `/api/covers/${course.id}`;
+}
+
 const BUNDLED_INCLUDE = {
   bundledCourses: {
     include: { modules: { include: { lessons: { include: { video: true } } } } },

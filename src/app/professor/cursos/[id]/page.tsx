@@ -95,7 +95,11 @@ export default async function EditCoursePage({
             <Label htmlFor="description">Descrição</Label>
             <Textarea id="description" name="description" defaultValue={course.description} required />
           </div>
-          <CoverImageField defaultValue={course.coverImageUrl ?? ""} />
+          <CoverImageField
+            defaultValue={course.coverImageUrl ?? ""}
+            defaultTheme={course.coverTheme}
+            courseId={course.id}
+          />
           <div className="grid grid-cols-2 gap-4 sm:grid-cols-3">
             <div>
               <Label htmlFor="price">Preço (R$)</Label>

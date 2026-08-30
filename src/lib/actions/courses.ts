@@ -74,6 +74,8 @@ export async function createCourse(formData: FormData) {
   const installments = Number(formData.get("installments") ?? 1);
   const accessDays = Number(formData.get("accessDays") ?? 365);
   const categoryId = String(formData.get("categoryId") ?? "") || null;
+  const coverImageUrl = String(formData.get("coverImageUrl") ?? "").trim();
+  const coverTheme = String(formData.get("coverTheme") ?? "").trim();
 
   if (!title || !description) {
     throw new Error("Título e descrição são obrigatórios");
@@ -98,6 +100,8 @@ export async function createCourse(formData: FormData) {
       categoryId,
       instructorId: user.id,
       published: false,
+      ...(coverImageUrl ? { coverImageUrl } : {}),
+      ...(coverTheme ? { coverTheme } : {}),
     },
   });
 
@@ -117,6 +121,7 @@ export async function updateCourse(courseId: string, formData: FormData) {
   const accessDays = Number(formData.get("accessDays") ?? 365);
   const categoryId = String(formData.get("categoryId") ?? "") || null;
   const coverImageUrl = String(formData.get("coverImageUrl") ?? "").trim();
+  const coverTheme = String(formData.get("coverTheme") ?? "").trim();
 
   await prisma.course.update({
     where: { id: courseId },
@@ -128,7 +133,8 @@ export async function updateCourse(courseId: string, formData: FormData) {
       installments: installments || 1,
       accessDays: accessDays || 365,
       categoryId,
-      ...(coverImageUrl ? { coverImageUrl } : {}),
+      coverImageUrl: coverImageUrl || null,
+      ...(coverTheme ? { coverTheme } : {}),
     },
   });
 

@@ -4,7 +4,7 @@ import { PlayCircle } from "lucide-react";
 import { requireUser } from "@/lib/session";
 import { prisma } from "@/lib/prisma";
 import { Card } from "@/components/ui/card";
-import { getEffectiveModules } from "@/lib/data/courses";
+import { getEffectiveModules, getCoverSrc } from "@/lib/data/courses";
 
 export const metadata = { title: "Meus cursos | Área do aluno" };
 
@@ -59,15 +59,13 @@ export default async function AlunoHomePage() {
             <Link key={enrollment.id} href={`/aluno/cursos/${enrollment.course.slug}`}>
               <Card className="h-full overflow-hidden transition-shadow hover:shadow-lg">
                 <div className="relative aspect-video w-full bg-brand-800">
-                  {enrollment.course.coverImageUrl && (
-                    <Image
-                      src={enrollment.course.coverImageUrl}
-                      alt={enrollment.course.title}
-                      fill
-                      className="object-cover"
-                      unoptimized
-                    />
-                  )}
+                  <Image
+                    src={getCoverSrc(enrollment.course)}
+                    alt={enrollment.course.title}
+                    fill
+                    className="object-cover"
+                    unoptimized
+                  />
                   <span className="absolute inset-0 flex items-center justify-center bg-black/20 opacity-0 transition-opacity hover:opacity-100">
                     <PlayCircle className="h-10 w-10 text-white" />
                   </span>

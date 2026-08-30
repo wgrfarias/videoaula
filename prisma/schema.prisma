@@ -13,11 +13,19 @@ datasource db {
 model User {
   id            String   @id @default(cuid())
   name          String
+  nickname      String?
   email         String   @unique
   passwordHash  String?
   role          String   @default("STUDENT")
   avatarUrl     String?
   bio           String?
+  // CPF (Brazilian tax id), stored digits-only. Nullable so OAuth sign-ups
+  // can complete it afterwards, but the player blocks watching until set —
+  // it's what gets burned into the on-screen watermark.
+  cpf           String?  @unique
+  // % of this user's course sales the platform keeps when they're an
+  // instructor. Irrelevant for STUDENT accounts.
+  platformFeePercent Float @default(20)
   createdAt     DateTime @default(now())
   updatedAt     DateTime @updatedAt
 
@@ -26,6 +34,7 @@ model User {
   orders        Order[]
   enrollments   Enrollment[]
   progress      LessonProgress[]
+  comments      Comment[]
 }
 
 model Category {
@@ -42,7 +51,12 @@ model Course {
   subtitle      String?
   description   String
   coverImageUrl String?
+  // Used to render an auto-generated cover (/api/covers/[id]) when no image
+  // was uploaded — see src/lib/covers.ts for the theme presets.
+  coverTheme    String   @default("tech-blue")
   price         Float
+  // 0-100. A course-specific sale price overrides the site-wide promo.
+  discountPercent Float  @default(0)
   installments  Int      @default(1)
   accessDays    Int      @default(365)
   published     Boolean  @default(false)
@@ -109,8 +123,27 @@ model Lesson {
   video   Video?  @relation(fields: [videoId], references: [id])
 
   progress LessonProgress[]
+  comments Comment[]
 
   @@index([moduleId])
+}
+
+// visibility: "PUBLIC" (every enrolled student + the instructor/admin can
+// see it) or "PRIVATE" (only its author and the instructor/admin — a
+// question aimed just at the teacher).
+model Comment {
+  id         String   @id @default(cuid())
+  body       String
+  visibility String   @default("PUBLIC")
+  createdAt  DateTime @default(now())
+
+  authorId String
+  author   User   @relation(fields: [authorId], references: [id])
+
+  lessonId String
+  lesson   Lesson @relation(fields: [lessonId], references: [id], onDelete: Cascade)
+
+  @@index([lessonId])
 }
 
 model Order {
@@ -162,6 +195,15 @@ model SiteContent {
   heroStatLine       String @default("+1.200 alunos em transição de carreira")
 
   footerTagline String @default("Cursos em vídeo para quem quer trilhar carreira em Tecnologia da Informação, com aulas gravadas, exercícios práticos e acompanhamento de progresso.")
+
+  // Site-wide sale. A course's own discountPercent (if > 0) overrides this
+  // for that course instead of stacking with it.
+  promoActive           Boolean @default(false)
+  promoGlobalDiscount    Float  @default(0)
+  promoBannerText       String  @default("Promoção por tempo limitado!")
+
+  // Optional video shown in the homepage hero instead of the placeholder.
+  heroVideoUrl String?
 
   aboutTitle String @default("Quem é o Wagner Farias?")
   aboutBody  String @default("Wagner Farias atua há mais de 10 anos na área de Tecnologia da Informação, passando por times de infraestrutura, projetos e desenvolvimento.\n\nHoje dedica seu tempo a ajudar quem quer migrar de carreira ou dar os primeiros passos rumo à TI, com uma didática direta e sem enrolação.")

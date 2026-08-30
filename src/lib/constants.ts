@@ -14,3 +14,10 @@ export const ORDER_STATUS = {
 } as const;
 
 export type OrderStatus = (typeof ORDER_STATUS)[keyof typeof ORDER_STATUS];
+
+export const COMMENT_VISIBILITY = {
+  PUBLIC: "PUBLIC",
+  PRIVATE: "PRIVATE",
+} as const;
+
+export type CommentVisibility = (typeof COMMENT_VISIBILITY)[keyof typeof COMMENT_VISIBILITY];

@@ -25,6 +25,7 @@ async function main() {
       name: "Wagner Farias",
       email: "wagner@rumoati.com.br",
       passwordHash,
+      cpf: "12345678909",
       role: ROLES.ADMIN,
       bio: "Mais de 10 anos em Tecnologia da Informação, ajudando quem quer migrar de carreira ou dar os primeiros passos rumo à TI.",
     },
@@ -37,6 +38,7 @@ async function main() {
       name: "Ana Estudante",
       email: "aluno@exemplo.com",
       passwordHash,
+      cpf: "98765432100",
       role: ROLES.STUDENT,
     },
   });

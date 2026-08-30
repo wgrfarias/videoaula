@@ -4,6 +4,7 @@ import { Label, Input, Textarea } from "@/components/ui/input";
 import { Button } from "@/components/ui/button";
 import { Card } from "@/components/ui/card";
 import { CategorySelect } from "@/components/instructor/category-select";
+import { CoverImageField } from "@/components/instructor/cover-image-field";
 
 export const metadata = { title: "Novo curso | Painel de cursos" };
 
@@ -52,6 +53,8 @@ export default async function NewCoursePage() {
             <Label htmlFor="categoryId">Categoria</Label>
             <CategorySelect categories={categories} />
           </div>
+
+          <CoverImageField defaultValue="" />
 
           <Button type="submit" className="w-full">
             Criar curso
