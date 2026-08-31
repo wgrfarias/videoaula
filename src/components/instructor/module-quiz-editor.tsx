@@ -43,26 +43,31 @@ export function ModuleQuizEditor({ moduleId, quiz }: { moduleId: string; quiz: Q
         <ClipboardCheck className="h-4 w-4 text-brand-600" /> Questionário do módulo
       </div>
 
-      <form action={updateQuiz.bind(null, quiz.id)} className="mt-3 flex flex-wrap items-end gap-2">
-        <div className="flex-1">
-          <Label htmlFor={`quiz-title-${quiz.id}`}>Título</Label>
-          <Input id={`quiz-title-${quiz.id}`} name="title" defaultValue={quiz.title} />
-        </div>
-        <div>
-          <Label htmlFor={`quiz-passing-${quiz.id}`}>Nota mínima %</Label>
-          <Input
-            id={`quiz-passing-${quiz.id}`}
-            name="passingPercent"
-            type="number"
-            min="0"
-            max="100"
-            defaultValue={quiz.passingPercent}
-            className="w-28"
-          />
-        </div>
-        <Button type="submit" size="sm" variant="outline" className="shrink-0">
-          Salvar
-        </Button>
+      <div className="mt-3 flex flex-wrap items-end gap-2">
+        <form
+          action={updateQuiz.bind(null, quiz.id)}
+          className="flex flex-1 flex-wrap items-end gap-2"
+        >
+          <div className="flex-1">
+            <Label htmlFor={`quiz-title-${quiz.id}`}>Título</Label>
+            <Input id={`quiz-title-${quiz.id}`} name="title" defaultValue={quiz.title} />
+          </div>
+          <div>
+            <Label htmlFor={`quiz-passing-${quiz.id}`}>Nota mínima %</Label>
+            <Input
+              id={`quiz-passing-${quiz.id}`}
+              name="passingPercent"
+              type="number"
+              min="0"
+              max="100"
+              defaultValue={quiz.passingPercent}
+              className="w-28"
+            />
+          </div>
+          <Button type="submit" size="sm" variant="outline" className="shrink-0">
+            Salvar
+          </Button>
+        </form>
         <form action={deleteQuiz.bind(null, quiz.id)}>
           <button
             type="submit"
@@ -72,7 +77,7 @@ export function ModuleQuizEditor({ moduleId, quiz }: { moduleId: string; quiz: Q
             <Trash2 className="h-4 w-4" />
           </button>
         </form>
-      </form>
+      </div>
 
       {quiz.questions.length > 0 && (
         <ul className="mt-3 space-y-2">
