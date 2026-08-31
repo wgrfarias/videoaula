@@ -9,12 +9,17 @@ import { getEffectivePrice } from "@/lib/pricing";
 import { formatCurrency, formatDuration, formatInstallments } from "@/lib/utils";
 import { getCurrentUser } from "@/lib/session";
 import { prisma } from "@/lib/prisma";
+import { getMaintenanceMessage } from "@/lib/maintenance";
+import { MaintenanceScreen } from "@/components/site/maintenance-screen";
 
 export default async function CourseDetailPage({
   params,
 }: {
   params: Promise<{ slug: string }>;
 }) {
+  const maintenanceMessage = await getMaintenanceMessage();
+  if (maintenanceMessage) return <MaintenanceScreen message={maintenanceMessage} />;
+
   const { slug } = await params;
   const course = await getCourseBySlug(slug);
   if (!course || !course.published) notFound();

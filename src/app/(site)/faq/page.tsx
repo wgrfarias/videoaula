@@ -1,4 +1,6 @@
 import { getSiteContent } from "@/lib/data/site-content";
+import { getMaintenanceMessage } from "@/lib/maintenance";
+import { MaintenanceScreen } from "@/components/site/maintenance-screen";
 
 const DEFAULT_FAQS = [
   {
@@ -25,6 +27,9 @@ export async function generateMetadata() {
 }
 
 export default async function FaqPage() {
+  const maintenanceMessage = await getMaintenanceMessage();
+  if (maintenanceMessage) return <MaintenanceScreen message={maintenanceMessage} />;
+
   const content = await getSiteContent();
   const faqs = content.faqItems.length > 0 ? content.faqItems : DEFAULT_FAQS;
 

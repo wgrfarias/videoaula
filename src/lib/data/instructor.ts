@@ -29,7 +29,13 @@ export async function getInstructorCourse(courseId: string) {
         include: {
           lessons: {
             orderBy: { order: "asc" },
-            include: { video: true },
+            include: {
+              video: true,
+              quizQuestions: {
+                orderBy: { order: "asc" },
+                include: { options: { orderBy: { order: "asc" } } },
+              },
+            },
           },
           quiz: {
             include: {

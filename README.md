@@ -51,6 +51,13 @@ em código.
   hora, direto do formulário do curso
 - Ao adicionar uma aula, é possível **enviar um vídeo novo ou reaproveitar
   qualquer vídeo já enviado** (inclusive de outro curso)
+- Nas abas de link do YouTube (no editor de curso e na biblioteca de
+  vídeos), depois de colar um link válido aparece um botão de **prévia**
+  — clica e o vídeo aparece embutido ali mesmo no formulário, pra
+  conferir se é o vídeo certo antes de salvar, sem precisar abrir o
+  YouTube em outra aba
+- Cada aula pode ter até **5 perguntas de múltipla escolha** de prática
+  (ver "Perguntas de múltipla escolha por aula" abaixo)
 - **Combos**: na página de edição de qualquer curso há a seção "Cursos
   incluídos", onde dá pra juntar cursos inteiros que você já criou em um
   novo produto — quem compra o combo ganha acesso a todas as aulas de cada
@@ -63,6 +70,17 @@ em código.
   bloqueado no player (cadeado na sidebar) — ele pode tentar quantas vezes
   quiser, sempre vendo o resultado na hora. Instrutor/admin visualizando o
   próprio curso nunca fica bloqueado
+- **Perguntas de múltipla escolha por aula**: diferente do questionário de
+  módulo acima, cada *aula* pode ter de 1 a 5 perguntas de prática,
+  configuradas direto na página de edição do curso (abaixo de cada aula,
+  em "Questões da aula"). Elas aparecem para o aluno logo abaixo do vídeo,
+  com feedback imediato por pergunta: resposta errada mostra a opção em
+  **vermelho** com a explicação (se houver); resposta certa mostra em
+  **verde claro**, com "Parabéns, resposta certa!" e a explicação. Não têm
+  nota mínima nem bloqueiam nada — é só reforço de conteúdo, então (ao
+  contrário do questionário de módulo, onde a resposta certa nunca é
+  enviada ao navegador do aluno) aqui a resposta certa de cada opção vai
+  junto com os dados da aula, já que não há motivo pra esconder
 
 **Segurança e conta do aluno**
 - Cadastro exige CPF, validado matematicamente (dígitos verificadores reais,
@@ -99,7 +117,29 @@ em código.
 - "Chamados" (`/admin/chamados`): central de suporte — responde qualquer
   chamado aberto por aluno ou professor, muda o status (aberto/em
   andamento/encerrado) e cria/exclui as categorias que aparecem no formulário
-  de abertura de chamado
+  de abertura de chamado. O item "Chamados" do menu mostra um **balão
+  vermelho** com a quantidade de chamados em aberto (status `OPEN`, ou seja,
+  ainda sem primeira resposta do admin) — some sozinho assim que não sobra
+  nenhum
+- "Conteúdo do site" também tem o **modo manutenção** (ver seção própria
+  abaixo)
+
+**Modo manutenção**
+- Em `/admin` → "Conteúdo do site" → "Modo manutenção": uma caixa de
+  seleção liga/desliga o modo manutenção, e um campo de texto define a
+  mensagem exibida
+- Enquanto ligado, todo mundo que **não** é admin (visitante anônimo, aluno
+  ou professor logado) vê uma tela única de manutenção em vez do site, ao
+  acessar qualquer página pública (home, catálogo, página de curso,
+  checkout, FAQ, sobre)
+- `/entrar` e `/cadastro` continuam acessíveis mesmo com o modo ligado —
+  senão o próprio admin ficaria trancado pra fora e não conseguiria
+  desligar. As áreas internas (`/aluno`, `/professor`, `/admin`) também
+  continuam funcionando normalmente para quem já tem acesso, já que o modo
+  manutenção é pensado para a vitrine pública, não para tirar o sistema do
+  ar por completo
+- Lógica em `src/lib/maintenance.ts` (`getMaintenanceMessage()`), chamada no
+  topo de cada página pública gated
 
 **Preços, promoções e cursos grátis**
 - Um curso com `price = 0` aparece como "Grátis" no catálogo, na página do
@@ -426,6 +466,27 @@ conta no Fly.io e o `flyctl` instalado e logado (`fly auth login`).
    ```bash
    fly ssh console -C "npm run db:seed"
    ```
+
+### Deploy automático (GitHub Actions)
+
+Depois do primeiro `fly deploy` manual acima, o projeto já inclui
+`.github/workflows/fly-deploy.yml`: todo **push na branch `main`** dispara
+um deploy automático no Fly.io — não precisa rodar `fly deploy` de novo à
+mão.
+
+**Configurar (uma vez só):**
+1. Gere um token de deploy:
+   ```bash
+   fly tokens create deploy -x 999999h
+   ```
+2. No GitHub, vá em **Settings → Secrets and variables → Actions** do
+   repositório e crie um secret chamado `FLY_API_TOKEN` com o valor gerado.
+
+A partir daí, o fluxo de trabalho é: você me pede uma alteração, eu
+implemento e testo no branch de desenvolvimento, e quando você disser
+"suba pra produção" (ou algo parecido) eu faço o merge para `main` e dou
+push — o GitHub Actions cuida do resto automaticamente. Acompanhe o
+andamento em **Actions** na aba do repositório no GitHub.
 
 **Sobre o volume de uploads:** ele existe numa única máquina física, então
 mantenha `min_machines_running = 1` (já configurado no `fly.toml`) e não

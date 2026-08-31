@@ -6,8 +6,17 @@ import { cn, formatDuration } from "@/lib/utils";
 import { Badge } from "@/components/ui/card";
 import { formatCPF } from "@/lib/cpf";
 import { LessonComments } from "@/components/player/lesson-comments";
+import { LessonQuiz } from "@/components/player/lesson-quiz";
 import { youtubeEmbedUrl } from "@/lib/youtube";
 import { ModuleQuiz, type QuizData } from "@/components/player/module-quiz";
+
+type LessonQuizOption = { id: string; text: string; isCorrect: boolean };
+type LessonQuizQuestion = {
+  id: string;
+  text: string;
+  explanation: string | null;
+  options: LessonQuizOption[];
+};
 
 type Lesson = {
   id: string;
@@ -16,6 +25,7 @@ type Lesson = {
   freePreview: boolean;
   videoId: string | null;
   video: { id: string; durationSec: number | null; provider: string; url: string } | null;
+  quizQuestions: LessonQuizQuestion[];
 };
 
 type Module = {
@@ -186,6 +196,8 @@ export function CoursePlayer({
             {currentLesson.description && (
               <p className="mt-2 text-sm text-ink-500">{currentLesson.description}</p>
             )}
+
+            <LessonQuiz questions={currentLesson.quizQuestions} />
 
             <LessonComments lessonId={currentLesson.id} viewerId={viewerId} />
           </div>

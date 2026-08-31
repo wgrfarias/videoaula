@@ -1,6 +1,8 @@
 import { CourseCard } from "@/components/site/course-card";
 import { getCategories, getPublishedCourses } from "@/lib/data/courses";
 import { getSiteContent } from "@/lib/data/site-content";
+import { getMaintenanceMessage } from "@/lib/maintenance";
+import { MaintenanceScreen } from "@/components/site/maintenance-screen";
 
 export const metadata = {
   title: "Cursos | Rumo à TI com Wagner Farias",
@@ -11,6 +13,9 @@ export default async function CoursesPage({
 }: {
   searchParams: Promise<{ q?: string; categoria?: string }>;
 }) {
+  const maintenanceMessage = await getMaintenanceMessage();
+  if (maintenanceMessage) return <MaintenanceScreen message={maintenanceMessage} />;
+
   const { q, categoria } = await searchParams;
   const [courses, categories, content] = await Promise.all([
     getPublishedCourses({ query: q, categorySlug: categoria }),

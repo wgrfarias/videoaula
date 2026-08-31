@@ -38,6 +38,8 @@ export async function updateSiteContent(formData: FormData) {
     promoActive: formData.get("promoActive") === "on",
     promoGlobalDiscount,
     promoBannerText: field("promoBannerText"),
+    maintenanceMode: formData.get("maintenanceMode") === "on",
+    maintenanceMessage: field("maintenanceMessage"),
   };
 
   await prisma.siteContent.upsert({

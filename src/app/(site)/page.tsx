@@ -5,8 +5,13 @@ import { CourseCard } from "@/components/site/course-card";
 import { getPublishedCourses } from "@/lib/data/courses";
 import { getSiteContent } from "@/lib/data/site-content";
 import { extractYouTubeId, youtubeEmbedUrl } from "@/lib/youtube";
+import { getMaintenanceMessage } from "@/lib/maintenance";
+import { MaintenanceScreen } from "@/components/site/maintenance-screen";
 
 export default async function HomePage() {
+  const maintenanceMessage = await getMaintenanceMessage();
+  if (maintenanceMessage) return <MaintenanceScreen message={maintenanceMessage} />;
+
   const [courses, content] = await Promise.all([getPublishedCourses(), getSiteContent()]);
   const featured = courses.slice(0, 3);
   const promo = { promoActive: content.promoActive, promoGlobalDiscount: content.promoGlobalDiscount };

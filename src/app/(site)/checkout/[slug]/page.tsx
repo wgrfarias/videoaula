@@ -7,12 +7,17 @@ import { getCurrentUser } from "@/lib/session";
 import { prisma } from "@/lib/prisma";
 import { Card } from "@/components/ui/card";
 import { CouponCheckout } from "@/components/site/coupon-checkout";
+import { getMaintenanceMessage } from "@/lib/maintenance";
+import { MaintenanceScreen } from "@/components/site/maintenance-screen";
 
 export default async function CheckoutPage({
   params,
 }: {
   params: Promise<{ slug: string }>;
 }) {
+  const maintenanceMessage = await getMaintenanceMessage();
+  if (maintenanceMessage) return <MaintenanceScreen message={maintenanceMessage} />;
+
   const { slug } = await params;
   const course = await getCourseBySlug(slug);
   if (!course || !course.published) notFound();

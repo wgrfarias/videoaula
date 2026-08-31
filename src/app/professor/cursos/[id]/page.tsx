@@ -13,6 +13,7 @@ import { Label, Input, Textarea } from "@/components/ui/input";
 import { Button } from "@/components/ui/button";
 import { AddLessonForm } from "@/components/instructor/add-lesson-form";
 import { ModuleQuizEditor } from "@/components/instructor/module-quiz-editor";
+import { LessonQuizEditor } from "@/components/instructor/lesson-quiz-editor";
 import { CoverImageField } from "@/components/instructor/cover-image-field";
 import { CategorySelect } from "@/components/instructor/category-select";
 import {
@@ -322,7 +323,8 @@ export default async function EditCoursePage({
 
               <ul className="mt-3 divide-y divide-ink-900/5">
                 {module.lessons.map((lesson, lessonIndex) => (
-                  <li key={lesson.id} className="flex items-center justify-between gap-3 py-2.5">
+                  <li key={lesson.id} className="py-2.5">
+                  <div className="flex items-center justify-between gap-3">
                     <div className="flex items-center gap-2 text-sm text-ink-700">
                       <span>{lesson.title}</span>
                       {lesson.freePreview && <Badge tone="success">Grátis</Badge>}
@@ -368,6 +370,8 @@ export default async function EditCoursePage({
                         </button>
                       </form>
                     </div>
+                  </div>
+                  <LessonQuizEditor lessonId={lesson.id} questions={lesson.quizQuestions} />
                   </li>
                 ))}
               </ul>

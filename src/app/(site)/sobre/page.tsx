@@ -1,4 +1,6 @@
 import { getSiteContent } from "@/lib/data/site-content";
+import { getMaintenanceMessage } from "@/lib/maintenance";
+import { MaintenanceScreen } from "@/components/site/maintenance-screen";
 
 export async function generateMetadata() {
   const content = await getSiteContent();
@@ -6,6 +8,9 @@ export async function generateMetadata() {
 }
 
 export default async function AboutPage() {
+  const maintenanceMessage = await getMaintenanceMessage();
+  if (maintenanceMessage) return <MaintenanceScreen message={maintenanceMessage} />;
+
   const content = await getSiteContent();
 
   return (

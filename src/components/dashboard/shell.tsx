@@ -27,6 +27,7 @@ export type DashboardNavItem = {
   label: string;
   icon: keyof typeof ICONS;
   exact?: boolean;
+  badge?: number;
 };
 
 export function DashboardShell({
@@ -71,7 +72,12 @@ export function DashboardShell({
                 )}
               >
                 <Icon className="h-4 w-4" />
-                {item.label}
+                <span className="flex-1">{item.label}</span>
+                {Boolean(item.badge) && (
+                  <span className="flex h-5 min-w-5 items-center justify-center rounded-full bg-red-500 px-1.5 text-[11px] font-bold text-white">
+                    {item.badge}
+                  </span>
+                )}
               </Link>
             );
           })}
@@ -116,12 +122,17 @@ export function DashboardShell({
                 key={item.href}
                 href={item.href}
                 className={cn(
-                  "whitespace-nowrap border-b-2 border-transparent pb-1",
+                  "flex items-center gap-1.5 whitespace-nowrap border-b-2 border-transparent pb-1",
                   (item.exact ? pathname === item.href : pathname.startsWith(item.href)) &&
                     "border-brand-600 text-brand-700"
                 )}
               >
                 {item.label}
+                {Boolean(item.badge) && (
+                  <span className="flex h-4 min-w-4 items-center justify-center rounded-full bg-red-500 px-1 text-[10px] font-bold text-white">
+                    {item.badge}
+                  </span>
+                )}
               </Link>
             ))}
           </nav>

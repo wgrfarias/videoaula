@@ -24,7 +24,13 @@ export default async function StudentCoursePage({
     include: {
       lessons: {
         orderBy: { order: "asc" as const },
-        include: { video: true },
+        include: {
+          video: true,
+          quizQuestions: {
+            orderBy: { order: "asc" as const },
+            include: { options: { orderBy: { order: "asc" as const } } },
+          },
+        },
       },
       quiz: {
         include: {

@@ -2,12 +2,13 @@
 
 import { useState, useTransition } from "react";
 import { useRouter } from "next/navigation";
-import { Library, UploadCloud, SquarePlay, Rabbit } from "lucide-react";
+import { Eye, Library, UploadCloud, SquarePlay, Rabbit } from "lucide-react";
 import { Input, FieldError } from "@/components/ui/input";
 import { Button } from "@/components/ui/button";
 import { cn, formatDuration } from "@/lib/utils";
 import { createLesson } from "@/lib/actions/courses";
 import { uploadToBunny } from "@/lib/bunny-client";
+import { extractYouTubeId, youtubeEmbedUrl } from "@/lib/youtube";
 
 type InstructorVideo = {
   id: string;
@@ -42,6 +43,9 @@ export function AddLessonForm({
   const [loading, setLoading] = useState(false);
   const [error, setError] = useState<string | null>(null);
   const [, startTransition] = useTransition();
+  const [youtubeUrlValue, setYoutubeUrlValue] = useState("");
+  const [showYoutubePreview, setShowYoutubePreview] = useState(false);
+  const youtubePreviewId = extractYouTubeId(youtubeUrlValue);
 
   async function handleExistingSubmit(e: React.FormEvent<HTMLFormElement>) {
     e.preventDefault();
@@ -135,6 +139,8 @@ export function AddLessonForm({
 
       await createLesson(moduleId, { title, videoId: data.video.id });
       form.reset();
+      setYoutubeUrlValue("");
+      setShowYoutubePreview(false);
       startTransition(() => router.refresh());
     } catch (err) {
       setError(err instanceof Error ? err.message : "Erro ao adicionar aula");
@@ -266,8 +272,35 @@ export function AddLessonForm({
         <form onSubmit={handleYoutubeSubmit} className="mt-3 space-y-3">
           <div className="grid gap-3 sm:grid-cols-2">
             <Input name="title" placeholder="Título da aula" />
-            <Input name="youtubeUrl" placeholder="https://youtube.com/watch?v=..." />
+            <div className="flex gap-1.5">
+              <Input
+                name="youtubeUrl"
+                placeholder="https://youtube.com/watch?v=..."
+                value={youtubeUrlValue}
+                onChange={(e) => {
+                  setYoutubeUrlValue(e.target.value);
+                  setShowYoutubePreview(false);
+                }}
+              />
+              <button
+                type="button"
+                title="Ver prévia do vídeo"
+                disabled={!youtubePreviewId}
+                onClick={() => setShowYoutubePreview((v) => !v)}
+                className="shrink-0 rounded-xl border border-ink-300/40 px-2.5 text-ink-500 hover:bg-surface-alt disabled:opacity-40"
+              >
+                <Eye className="h-4 w-4" />
+              </button>
+            </div>
           </div>
+          {showYoutubePreview && youtubePreviewId && (
+            <iframe
+              src={youtubeEmbedUrl(youtubePreviewId)}
+              className="aspect-video w-full max-w-sm rounded-xl"
+              title="Prévia do vídeo"
+              allowFullScreen
+            />
+          )}
           <Input name="durationSec" type="number" min="0" placeholder="Duração em segundos (opcional)" />
           <Button type="submit" disabled={loading} size="sm">
             {loading ? "Vinculando..." : "Vincular e adicionar aula"}

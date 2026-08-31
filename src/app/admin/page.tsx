@@ -19,6 +19,34 @@ export default async function AdminSettingsPage() {
       </p>
 
       <form action={updateSiteContent} className="mt-8 space-y-8">
+        <Card className={content.maintenanceMode ? "border-2 border-accent-500 p-6" : "p-6"}>
+          <h2 className="font-display font-semibold text-ink-900">Modo manutenção</h2>
+          <p className="mt-1 text-xs text-ink-500">
+            Enquanto ativado, todo mundo que não for admin vê a mensagem
+            abaixo em vez do site — só a tela de login continua acessível,
+            pra você conseguir entrar e desativar depois.
+          </p>
+          <div className="mt-4 space-y-4">
+            <label className="flex items-center gap-2 text-sm font-medium text-ink-700">
+              <input
+                type="checkbox"
+                name="maintenanceMode"
+                defaultChecked={content.maintenanceMode}
+                className="h-4 w-4 rounded border-ink-300"
+              />
+              Ativar modo manutenção
+            </label>
+            <div>
+              <Label htmlFor="maintenanceMessage">Mensagem exibida</Label>
+              <Textarea
+                id="maintenanceMessage"
+                name="maintenanceMessage"
+                defaultValue={content.maintenanceMessage}
+              />
+            </div>
+          </div>
+        </Card>
+
         <Card className="p-6">
           <h2 className="font-display font-semibold text-ink-900">Marca</h2>
           <div className="mt-4 grid gap-4 sm:grid-cols-2">

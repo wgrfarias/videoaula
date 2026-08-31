@@ -1,7 +1,14 @@
 import { prisma } from "@/lib/prisma";
+import { TICKET_STATUS } from "@/lib/constants";
 
 export async function getTicketCategories() {
   return prisma.ticketCategory.findMany({ orderBy: { name: "asc" } });
+}
+
+// Drives the red notification badge on the admin "Chamados" nav item —
+// chamados still marked OPEN haven't had a first reply from the admin yet.
+export async function getOpenTicketCount() {
+  return prisma.ticket.count({ where: { status: TICKET_STATUS.OPEN } });
 }
 
 export async function getUserTickets(userId: string) {

@@ -144,8 +144,38 @@ model Lesson {
 
   progress LessonProgress[]
   comments Comment[]
+  quizQuestions LessonQuizQuestion[]
 
   @@index([moduleId])
+}
+
+// Up to 5 multiple-choice questions attached directly to a lesson (distinct
+// from Quiz, which gates a whole Module) — shown under the video for instant
+// per-question feedback, not scored/gated.
+model LessonQuizQuestion {
+  id          String  @id @default(cuid())
+  text        String
+  explanation String?
+  order       Int     @default(0)
+
+  lessonId String
+  lesson   Lesson @relation(fields: [lessonId], references: [id], onDelete: Cascade)
+
+  options LessonQuizOption[]
+
+  @@index([lessonId])
+}
+
+model LessonQuizOption {
+  id        String  @id @default(cuid())
+  text      String
+  isCorrect Boolean @default(false)
+  order     Int     @default(0)
+
+  questionId String
+  question   LessonQuizQuestion @relation(fields: [questionId], references: [id], onDelete: Cascade)
+
+  @@index([questionId])
 }
 
 // visibility: "PUBLIC" (every enrolled student + the instructor/admin can
@@ -272,6 +302,12 @@ model SiteContent {
 
   // Optional video shown in the homepage hero instead of the placeholder.
   heroVideoUrl String?
+
+  // When on, every public page (except /entrar and /cadastro) shows
+  // maintenanceMessage instead of its normal content for anyone who isn't
+  // ADMIN — see src/lib/maintenance.ts.
+  maintenanceMode    Boolean @default(false)
+  maintenanceMessage String  @default("Estamos em manutenção. Voltamos em breve!")
 
   aboutTitle String @default("Quem é o Wagner Farias?")
   aboutBody  String @default("Wagner Farias atua há mais de 10 anos na área de Tecnologia da Informação, passando por times de infraestrutura, projetos e desenvolvimento.\n\nHoje dedica seu tempo a ajudar quem quer migrar de carreira ou dar os primeiros passos rumo à TI, com uma didática direta e sem enrolação.")

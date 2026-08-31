@@ -2,11 +2,12 @@
 
 import { useRef, useState } from "react";
 import { useRouter } from "next/navigation";
-import { UploadCloud, SquarePlay, Rabbit } from "lucide-react";
+import { Eye, UploadCloud, SquarePlay, Rabbit } from "lucide-react";
 import { Label, Input, FieldError } from "@/components/ui/input";
 import { Button } from "@/components/ui/button";
 import { cn } from "@/lib/utils";
 import { uploadToBunny } from "@/lib/bunny-client";
+import { extractYouTubeId, youtubeEmbedUrl } from "@/lib/youtube";
 
 function readVideoDuration(file: File): Promise<number | null> {
   return new Promise((resolve) => {
@@ -30,6 +31,9 @@ export function VideoUploadForm({ onUploaded }: { onUploaded?: (videoId: string)
   const [loading, setLoading] = useState(false);
   const [progressLabel, setProgressLabel] = useState<string | null>(null);
   const [error, setError] = useState<string | null>(null);
+  const [youtubeUrlValue, setYoutubeUrlValue] = useState("");
+  const [showYoutubePreview, setShowYoutubePreview] = useState(false);
+  const youtubePreviewId = extractYouTubeId(youtubeUrlValue);
 
   async function handleYoutubeSubmit(e: React.FormEvent<HTMLFormElement>) {
     e.preventDefault();
@@ -59,6 +63,8 @@ export function VideoUploadForm({ onUploaded }: { onUploaded?: (videoId: string)
     }
 
     form.reset();
+    setYoutubeUrlValue("");
+    setShowYoutubePreview(false);
     onUploaded?.(data.video.id);
     router.refresh();
   }
@@ -209,8 +215,36 @@ export function VideoUploadForm({ onUploaded }: { onUploaded?: (videoId: string)
           </div>
           <div>
             <Label htmlFor="yt-url">Link do vídeo no YouTube</Label>
-            <Input id="yt-url" name="youtubeUrl" placeholder="https://youtube.com/watch?v=..." />
+            <div className="flex gap-1.5">
+              <Input
+                id="yt-url"
+                name="youtubeUrl"
+                placeholder="https://youtube.com/watch?v=..."
+                value={youtubeUrlValue}
+                onChange={(e) => {
+                  setYoutubeUrlValue(e.target.value);
+                  setShowYoutubePreview(false);
+                }}
+              />
+              <button
+                type="button"
+                title="Ver prévia do vídeo"
+                disabled={!youtubePreviewId}
+                onClick={() => setShowYoutubePreview((v) => !v)}
+                className="shrink-0 rounded-xl border border-ink-300/40 px-2.5 text-ink-500 hover:bg-surface-alt disabled:opacity-40"
+              >
+                <Eye className="h-4 w-4" />
+              </button>
+            </div>
           </div>
+          {showYoutubePreview && youtubePreviewId && (
+            <iframe
+              src={youtubeEmbedUrl(youtubePreviewId)}
+              className="aspect-video w-full max-w-sm rounded-xl"
+              title="Prévia do vídeo"
+              allowFullScreen
+            />
+          )}
           <div>
             <Label htmlFor="yt-duration">Duração em segundos (opcional)</Label>
             <Input id="yt-duration" name="durationSec" type="number" min="0" placeholder="Ex: 1200" />
