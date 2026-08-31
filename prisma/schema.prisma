@@ -36,6 +36,10 @@ model User {
   progress      LessonProgress[]
   comments      Comment[]
   couponRedemptions CouponRedemption[]
+  pageViews         PageView[]
+  tickets           Ticket[]
+  ticketMessages    TicketMessage[]
+  quizAttempts      QuizAttempt[]
 }
 
 model Category {
@@ -84,6 +88,8 @@ model Course {
   // sitewide coupon (scope = "SITEWIDE") isn't listed against any course.
   coupons           Coupon[]           @relation("CouponCourses")
   couponRedemptions CouponRedemption[]
+  pageViews         PageView[]
+  tickets           Ticket[]
 }
 
 model Video {
@@ -115,6 +121,7 @@ model Module {
   course   Course @relation(fields: [courseId], references: [id], onDelete: Cascade)
 
   lessons Lesson[]
+  quiz    Quiz?
 
   @@index([courseId])
 }
@@ -286,4 +293,130 @@ model LessonProgress {
   lesson   Lesson @relation(fields: [lessonId], references: [id], onDelete: Cascade)
 
   @@unique([userId, lessonId])
+}
+
+// One row per page visit, updated in place as the visitor stays on the
+// page (see src/components/analytics/page-view-tracker.tsx). Logged-in
+// visitors are tied to `userId`; anonymous ones only carry `anonId`, a
+// random id stored in a first-party cookie — never used to identify a
+// person, just to avoid conflating unrelated anonymous visits.
+model PageView {
+  id          String   @id @default(cuid())
+  path        String
+  durationSec Int      @default(0)
+  createdAt   DateTime @default(now())
+  updatedAt   DateTime @updatedAt
+
+  userId String?
+  user   User?   @relation(fields: [userId], references: [id])
+
+  anonId String?
+
+  courseId String?
+  course   Course? @relation(fields: [courseId], references: [id])
+
+  @@index([path])
+  @@index([courseId])
+  @@index([userId])
+}
+
+// Admin-managed labels for support tickets (e.g. "Pagamento", "Acesso a
+// aulas", "Dúvida de conteúdo") — created/edited in /admin/chamados.
+model TicketCategory {
+  id      String   @id @default(cuid())
+  name    String   @unique
+  tickets Ticket[]
+}
+
+model Ticket {
+  id          String   @id @default(cuid())
+  subject     String
+  description String
+  status      String   @default("OPEN") // OPEN | IN_PROGRESS | CLOSED
+  createdAt   DateTime @default(now())
+  updatedAt   DateTime @updatedAt
+
+  categoryId String
+  category   TicketCategory @relation(fields: [categoryId], references: [id])
+
+  authorId String
+  author   User   @relation(fields: [authorId], references: [id])
+
+  courseId String?
+  course   Course? @relation(fields: [courseId], references: [id])
+
+  messages TicketMessage[]
+
+  @@index([status])
+  @@index([authorId])
+}
+
+model TicketMessage {
+  id        String   @id @default(cuid())
+  body      String
+  createdAt DateTime @default(now())
+
+  ticketId String
+  ticket   Ticket @relation(fields: [ticketId], references: [id], onDelete: Cascade)
+
+  authorId String
+  author   User   @relation(fields: [authorId], references: [id])
+
+  @@index([ticketId])
+}
+
+// One quiz per Module (optional). Passing it (scorePercent >= passingPercent
+// on some attempt) is what the player checks before unlocking the next
+// module's lessons — see getModuleGating() in src/lib/data/quizzes.ts.
+model Quiz {
+  id             String @id @default(cuid())
+  title          String @default("Questionário do módulo")
+  passingPercent Float  @default(70)
+
+  moduleId String @unique
+  module   Module @relation(fields: [moduleId], references: [id], onDelete: Cascade)
+
+  questions Question[]
+  attempts  QuizAttempt[]
+}
+
+model Question {
+  id    String @id @default(cuid())
+  text  String
+  order Int    @default(0)
+
+  quizId String
+  quiz   Quiz   @relation(fields: [quizId], references: [id], onDelete: Cascade)
+
+  options QuestionOption[]
+
+  @@index([quizId])
+}
+
+model QuestionOption {
+  id        String  @id @default(cuid())
+  text      String
+  isCorrect Boolean @default(false)
+  order     Int     @default(0)
+
+  questionId String
+  question   Question @relation(fields: [questionId], references: [id], onDelete: Cascade)
+
+  @@index([questionId])
+}
+
+model QuizAttempt {
+  id           String   @id @default(cuid())
+  scorePercent Float
+  passed       Boolean
+  createdAt    DateTime @default(now())
+
+  quizId String
+  quiz   Quiz   @relation(fields: [quizId], references: [id], onDelete: Cascade)
+
+  userId String
+  user   User   @relation(fields: [userId], references: [id])
+
+  @@index([quizId])
+  @@index([userId])
 }

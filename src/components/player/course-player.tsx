@@ -1,12 +1,13 @@
 "use client";
 
 import { useMemo, useRef, useState } from "react";
-import { CheckCircle2, Circle, PlayCircle } from "lucide-react";
+import { CheckCircle2, Circle, Lock, PlayCircle, ClipboardCheck } from "lucide-react";
 import { cn, formatDuration } from "@/lib/utils";
 import { Badge } from "@/components/ui/card";
 import { formatCPF } from "@/lib/cpf";
 import { LessonComments } from "@/components/player/lesson-comments";
 import { youtubeEmbedUrl } from "@/lib/youtube";
+import { ModuleQuiz, type QuizData } from "@/components/player/module-quiz";
 
 type Lesson = {
   id: string;
@@ -21,6 +22,7 @@ type Module = {
   id: string;
   title: string;
   lessons: Lesson[];
+  quiz: QuizData | null;
 };
 
 type Course = {
@@ -38,11 +40,13 @@ type ProgressEntry = {
 export function CoursePlayer({
   course,
   progress,
+  moduleGating,
   watermarkCpf,
   viewerId,
 }: {
   course: Course;
   progress: ProgressEntry[];
+  moduleGating: Record<string, boolean>;
   watermarkCpf?: string | null;
   viewerId: string;
 }) {
@@ -57,12 +61,23 @@ export function CoursePlayer({
   const [currentLessonId, setCurrentLessonId] = useState(
     firstIncomplete?.id ?? allLessons[0]?.id
   );
+  const [activeQuizModuleId, setActiveQuizModuleId] = useState<string | null>(null);
   const [completedIds, setCompletedIds] = useState<Set<string>>(
     () => new Set(progress.filter((p) => p.completed).map((p) => p.lessonId))
   );
 
-  const currentLesson = allLessons.find((l) => l.id === currentLessonId);
+  const currentLesson = activeQuizModuleId
+    ? undefined
+    : allLessons.find((l) => l.id === currentLessonId);
+  const activeQuizModule = activeQuizModuleId
+    ? course.modules.find((m) => m.id === activeQuizModuleId)
+    : undefined;
   const lastReportRef = useRef(0);
+
+  function selectLesson(lessonId: string) {
+    setActiveQuizModuleId(null);
+    setCurrentLessonId(lessonId);
+  }
 
   async function reportProgress(lessonId: string, watchedSeconds: number, completed?: boolean) {
     await fetch("/api/progress", {
@@ -103,6 +118,12 @@ export function CoursePlayer({
       <div>
         <h1 className="font-display text-xl font-bold text-ink-900">{course.title}</h1>
 
+        {activeQuizModule?.quiz ? (
+          <div className="mt-4">
+            <ModuleQuiz key={activeQuizModule.quiz.id} quiz={activeQuizModule.quiz} />
+          </div>
+        ) : (
+          <>
         <div className="relative mt-4 overflow-hidden rounded-2xl bg-black">
           {currentLesson?.video?.provider === "youtube" ? (
             <iframe
@@ -160,30 +181,42 @@ export function CoursePlayer({
             <LessonComments lessonId={currentLesson.id} viewerId={viewerId} />
           </div>
         )}
+          </>
+        )}
       </div>
 
       <aside className="rounded-2xl border border-ink-900/10 bg-surface p-4">
         <p className="mb-3 px-1 text-sm font-semibold text-ink-900">Conteúdo do curso</p>
         <div className="max-h-[70vh] space-y-4 overflow-y-auto pr-1">
-          {course.modules.map((module) => (
+          {course.modules.map((module) => {
+            const unlocked = moduleGating[module.id] ?? true;
+            return (
             <div key={module.id}>
-              <p className="px-1 text-xs font-semibold uppercase tracking-wide text-ink-300">
+              <p className="flex items-center gap-1.5 px-1 text-xs font-semibold uppercase tracking-wide text-ink-300">
+                {!unlocked && <Lock className="h-3 w-3" />}
                 {module.title}
               </p>
               <ul className="mt-2 space-y-1">
                 {module.lessons.map((lesson) => {
-                  const active = lesson.id === currentLessonId;
+                  const active = !activeQuizModuleId && lesson.id === currentLessonId;
                   const done = completedIds.has(lesson.id);
                   return (
                     <li key={lesson.id}>
                       <button
-                        onClick={() => setCurrentLessonId(lesson.id)}
+                        onClick={() => unlocked && selectLesson(lesson.id)}
+                        disabled={!unlocked}
                         className={cn(
                           "flex w-full items-center gap-2.5 rounded-xl px-2.5 py-2 text-left text-sm transition",
-                          active ? "bg-brand-50 text-brand-700" : "text-ink-700 hover:bg-surface-alt"
+                          !unlocked
+                            ? "cursor-not-allowed text-ink-300 opacity-60"
+                            : active
+                              ? "bg-brand-50 text-brand-700"
+                              : "text-ink-700 hover:bg-surface-alt"
                         )}
                       >
-                        {done ? (
+                        {!unlocked ? (
+                          <Lock className="h-4 w-4 shrink-0" />
+                        ) : done ? (
                           <CheckCircle2 className="h-4 w-4 shrink-0 text-emerald-500" />
                         ) : active ? (
                           <PlayCircle className="h-4 w-4 shrink-0 text-brand-600" />
@@ -199,9 +232,33 @@ export function CoursePlayer({
                     </li>
                   );
                 })}
+                {module.quiz && (
+                  <li>
+                    <button
+                      onClick={() => unlocked && setActiveQuizModuleId(module.id)}
+                      disabled={!unlocked}
+                      className={cn(
+                        "flex w-full items-center gap-2.5 rounded-xl px-2.5 py-2 text-left text-sm transition",
+                        !unlocked
+                          ? "cursor-not-allowed text-ink-300 opacity-60"
+                          : activeQuizModuleId === module.id
+                            ? "bg-brand-50 text-brand-700"
+                            : "text-ink-700 hover:bg-surface-alt"
+                      )}
+                    >
+                      {!unlocked ? (
+                        <Lock className="h-4 w-4 shrink-0" />
+                      ) : (
+                        <ClipboardCheck className="h-4 w-4 shrink-0 text-brand-600" />
+                      )}
+                      <span className="flex-1 leading-snug">{module.quiz.title}</span>
+                    </button>
+                  </li>
+                )}
               </ul>
             </div>
-          ))}
+            );
+          })}
         </div>
       </aside>
     </div>

@@ -3,6 +3,7 @@ import { Poppins, Inter } from "next/font/google";
 import "./globals.css";
 import { AuthSessionProvider } from "@/components/providers/session-provider";
 import { ThemeProvider } from "@/components/providers/theme-provider";
+import { PageViewTracker } from "@/components/analytics/page-view-tracker";
 
 const poppins = Poppins({
   variable: "--font-poppins",
@@ -30,7 +31,10 @@ export default function RootLayout({ children }: { children: React.ReactNode }) 
     >
       <body className="min-h-full flex flex-col bg-background text-ink-900">
         <ThemeProvider attribute="class" defaultTheme="system" enableSystem disableTransitionOnChange>
-          <AuthSessionProvider>{children}</AuthSessionProvider>
+          <AuthSessionProvider>
+            <PageViewTracker />
+            {children}
+          </AuthSessionProvider>
         </ThemeProvider>
       </body>
     </html>

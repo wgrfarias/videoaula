@@ -12,6 +12,7 @@ import { Card, Badge } from "@/components/ui/card";
 import { Label, Input, Textarea } from "@/components/ui/input";
 import { Button } from "@/components/ui/button";
 import { AddLessonForm } from "@/components/instructor/add-lesson-form";
+import { ModuleQuizEditor } from "@/components/instructor/module-quiz-editor";
 import { CoverImageField } from "@/components/instructor/cover-image-field";
 import { CategorySelect } from "@/components/instructor/category-select";
 import {
@@ -374,6 +375,8 @@ export default async function EditCoursePage({
               <div className="mt-4 border-t border-ink-900/5 pt-4">
                 <AddLessonForm moduleId={module.id} videos={videos} />
               </div>
+
+              <ModuleQuizEditor moduleId={module.id} quiz={module.quiz} />
             </Card>
           ))}
         </div>

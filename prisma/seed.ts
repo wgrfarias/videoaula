@@ -181,6 +181,54 @@ async function main() {
     },
   });
 
+  // Demo quiz gating the second module behind the first one's questionnaire.
+  const firstModule = await prisma.module.findFirstOrThrow({
+    where: { courseId: course1.id, order: 0 },
+  });
+  const quiz1 = await prisma.quiz.create({
+    data: {
+      moduleId: firstModule.id,
+      title: "Questionário: Fundamentos de Lógica",
+      passingPercent: 70,
+    },
+  });
+  await prisma.question.create({
+    data: {
+      quizId: quiz1.id,
+      text: "O que é um algoritmo?",
+      order: 0,
+      options: {
+        create: [
+          { text: "Uma sequência finita de passos para resolver um problema", isCorrect: true, order: 0 },
+          { text: "Um tipo de variável", isCorrect: false, order: 1 },
+          { text: "Uma linguagem de programação", isCorrect: false, order: 2 },
+        ],
+      },
+    },
+  });
+  await prisma.question.create({
+    data: {
+      quizId: quiz1.id,
+      text: "Qual estrutura armazena um valor que pode mudar durante a execução do programa?",
+      order: 1,
+      options: {
+        create: [
+          { text: "Uma constante", isCorrect: false, order: 0 },
+          { text: "Uma variável", isCorrect: true, order: 1 },
+          { text: "Um comentário", isCorrect: false, order: 2 },
+        ],
+      },
+    },
+  });
+
+  // Ticket categories for the support center — created here so the "abrir
+  // chamado" form isn't empty on first login.
+  await Promise.all(
+    ["Pagamento", "Acesso a aulas", "Dúvida de conteúdo", "Sugestão"].map((name) =>
+      prisma.ticketCategory.upsert({ where: { name }, update: {}, create: { name } })
+    )
+  );
+
   // Course 2: "Fundamentos de Redes e Linux" — hands-on labs, own videos
   const labVideos = [];
   for (const title of [

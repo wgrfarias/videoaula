@@ -31,6 +31,14 @@ export async function getInstructorCourse(courseId: string) {
             orderBy: { order: "asc" },
             include: { video: true },
           },
+          quiz: {
+            include: {
+              questions: {
+                orderBy: { order: "asc" },
+                include: { options: { orderBy: { order: "asc" } } },
+              },
+            },
+          },
         },
       },
       bundledCourses: {

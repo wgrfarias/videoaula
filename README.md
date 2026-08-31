@@ -32,6 +32,11 @@ em código.
 - Lista dos cursos comprados com barra de progresso
 - Player do curso com sidebar de módulos/aulas, marcação de aula concluída e
   retomada de onde parou
+- `/aluno/compras`: histórico de todas as compras da conta (curso, data,
+  valor pago, cupom usado se houver, status)
+- `/aluno/suporte` (e `/professor/suporte` para instrutores): abrir um
+  chamado de suporte com categoria e descrição, acompanhar as respostas em
+  formato de conversa
 
 **Painel de cursos (`/professor`, papéis `INSTRUCTOR`/`ADMIN`)**
 - Visão geral (cursos publicados, alunos, faturamento)
@@ -48,6 +53,12 @@ em código.
   curso incluído, sem recriar módulos nem reenviar vídeo nenhum. Um combo
   não pode incluir outro combo (evita aninhamento), mas o mesmo curso pode
   entrar em quantos combos diferentes você quiser
+- **Questionário por módulo**: cada módulo pode ter um questionário de
+  múltipla escolha com uma nota mínima de aprovação definida pelo
+  professor. Enquanto o aluno não atinge essa nota, o próximo módulo fica
+  bloqueado no player (cadeado na sidebar) — ele pode tentar quantas vezes
+  quiser, sempre vendo o resultado na hora. Instrutor/admin visualizando o
+  próprio curso nunca fica bloqueado
 
 **Segurança e conta do aluno**
 - Cadastro exige CPF, validado matematicamente (dígitos verificadores reais,
@@ -76,6 +87,15 @@ em código.
 - "Faturamento" (`/admin/faturamento`): faturamento bruto, comissão retida e
   repasse líquido, consolidado por professor — cada um com sua própria
   porcentagem configurável
+- "Métricas" (`/admin/metricas`): funil de conversão por curso (visita →
+  checkout → compra), ranking de cursos/aulas mais assistidos, abandono de
+  vídeo (em que % do vídeo os alunos param de assistir) e tempo médio/total
+  por página — tudo calculado a partir dos próprios dados da plataforma,
+  sem ferramenta externa (ver "Métricas e analytics" abaixo)
+- "Chamados" (`/admin/chamados`): central de suporte — responde qualquer
+  chamado aberto por aluno ou professor, muda o status (aberto/em
+  andamento/encerrado) e cria/exclui as categorias que aparecem no formulário
+  de abertura de chamado
 
 **Preços, promoções e cursos grátis**
 - Um curso com `price = 0` aparece como "Grátis" no catálogo, na página do
@@ -119,6 +139,21 @@ em código.
   vídeo não funciona para vídeos do YouTube (não há evento de término
   disponível sem a API do player do YouTube) — dá pra marcar manualmente
 
+**Métricas e analytics**
+- `src/components/analytics/page-view-tracker.tsx`, montado uma vez no
+  layout raiz, registra uma visita (`PageView`) a cada rota visitada e
+  atualiza o tempo em página em tempo real (usando a Page Visibility API +
+  `navigator.sendBeacon` ao sair da página) — funciona tanto para quem está
+  logado quanto para visitantes anônimos (identificados por um cookie
+  próprio, sem qualquer dado pessoal)
+- Isso alimenta o funil de conversão e o "tempo por página" em
+  `/admin/metricas`; o restante (cursos/aulas mais assistidos, abandono de
+  vídeo) usa os dados de progresso que o player já reportava (`LessonProgress`)
+- É um sistema próprio, dentro da plataforma — não substitui uma ferramenta
+  como Google Analytics para métricas de tráfego (origem, dispositivo,
+  geografia), mas cruza diretamente com dados de aluno/curso que uma
+  ferramenta externa não teria acesso
+
 **Acesso manual e multi-professor**
 - Na página de edição de um curso, o professor/admin pode conceder acesso a
   um aluno específico pelo e-mail, remover o acesso de qualquer aluno, ou
@@ -156,7 +191,11 @@ inteiros (a mesma mecânica da seção "Cursos incluídos" no editor de curso);
 "Introdução à Segurança da Informação" é **grátis** e pertence à segunda
 professora (Carla), assim como "Hardening de Servidores Linux" (pago) — o
 que dá para conferir em `/admin/faturamento` que cada professor tem seu
-próprio faturamento e comissão (20% para Wagner, 15% para Carla).
+próprio faturamento e comissão (20% para Wagner, 15% para Carla). O
+primeiro módulo de "Lógica de Programação do Zero" já vem com um
+questionário de exemplo (nota mínima 70%) para testar o bloqueio do
+próximo módulo, e quatro categorias de chamado já estão cadastradas em
+`/admin/chamados` para testar a central de suporte.
 
 ## Estrutura de dados (Prisma)
 
@@ -196,6 +235,17 @@ próprio faturamento e comissão (20% para Wagner, 15% para Carla).
   (listas como links de menu, redes sociais e FAQ ficam como JSON em texto),
   incluindo `heroVideoUrl` e os campos de promoção geral (`promoActive`,
   `promoGlobalDiscount`, `promoBannerText`)
+- `PageView` — uma linha por visita de página, com `durationSec` atualizado
+  enquanto a aba fica visível; `userId` para quem está logado ou `anonId`
+  (cookie) para visitante anônimo
+- `TicketCategory` / `Ticket` / `TicketMessage` — categorias de chamado
+  configuráveis pelo admin, o chamado em si (`status` `OPEN`/`IN_PROGRESS`/
+  `CLOSED`) e a conversa de respostas entre o autor e o suporte
+- `Quiz` (um por `Module`, opcional) → `Question` → `QuestionOption` —
+  banco de perguntas de múltipla escolha; `QuizAttempt` guarda cada
+  tentativa de um aluno (`scorePercent`, `passed`). `computeModuleGating()`
+  em `src/lib/data/quizzes.ts` decide, a partir dos `QuizAttempt`s com
+  `passed = true`, quais módulos aparecem destrancados no player
 
 SQLite não tem enum nativo, então `role` e `status` são strings com os
 valores definidos em `src/lib/constants.ts`.
