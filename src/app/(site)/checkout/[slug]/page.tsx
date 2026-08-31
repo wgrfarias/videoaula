@@ -9,6 +9,7 @@ import { Card } from "@/components/ui/card";
 import { CouponCheckout } from "@/components/site/coupon-checkout";
 import { getMaintenanceMessage } from "@/lib/maintenance";
 import { MaintenanceScreen } from "@/components/site/maintenance-screen";
+import { isStripeConfigured } from "@/lib/stripe";
 
 export default async function CheckoutPage({
   params,
@@ -68,7 +69,11 @@ export default async function CheckoutPage({
           </div>
 
           <p className="mt-3 text-center text-xs text-ink-300">
-            Ambiente de demonstração — o pagamento é confirmado automaticamente.
+            {isFree
+              ? "Curso grátis — sem cobrança."
+              : isStripeConfigured()
+                ? "Pagamento processado com segurança pelo Stripe."
+                : "Ambiente de demonstração — o pagamento é confirmado automaticamente."}
           </p>
         </div>
       </Card>

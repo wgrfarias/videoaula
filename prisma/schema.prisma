@@ -204,6 +204,17 @@ model Order {
   createdAt DateTime    @default(now())
   paidAt    DateTime?
 
+  // Set when provider = "stripe": the Checkout Session that created this
+  // order (PENDING until the webhook, or the success-page fallback, confirms
+  // payment_status = "paid") and the resulting PaymentIntent, once known.
+  stripeSessionId       String? @unique
+  stripePaymentIntentId String?
+  // Coupon applied at checkout time, if any — kept here (rather than only on
+  // CouponRedemption) so the async Stripe fulfillment step, which runs after
+  // the checkout request has already returned, knows which redemption to
+  // mark as converted.
+  couponId String?
+
   userId String
   user   User   @relation(fields: [userId], references: [id])
 

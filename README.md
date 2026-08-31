@@ -123,6 +123,12 @@ em código.
   nenhum
 - "Conteúdo do site" também tem o **modo manutenção** (ver seção própria
   abaixo)
+- "Comentários" (`/admin/comentarios`): lista, num só lugar, os comentários
+  de todos os alunos e professores em todas as aulas de todos os cursos —
+  quem escreveu, em qual curso/aula, o texto, se é público ou privado e
+  quando foi. Comentários privados também aparecem aqui (só não aparecem
+  para outros alunos dentro do player). Dá pra excluir qualquer comentário
+  direto dessa lista
 
 **Modo manutenção**
 - Em `/admin` → "Conteúdo do site" → "Modo manutenção": uma caixa de
@@ -392,14 +398,62 @@ mexer em código.
 > com 401, vale conferir os nomes exatos dos campos de metadata TUS em
 > https://docs.bunny.net contra `src/lib/bunny-client.ts`.
 
-## Pagamento
+## Pagamento com Stripe
 
-O checkout (`/api/checkout`) já cria `Order` + `Enrollment` de forma
-imediata para fins de demonstração ("pagamento" sempre aprovado). Para
-produção, troque o corpo dessa rota por uma Checkout Session de um gateway
-real (Stripe, Mercado Pago, etc.) que confirme o pagamento via webhook antes
-de liberar a matrícula — o modelo de dados já suporta o fluxo
-`PENDING -> PAID`.
+> **Não verificado ao vivo**: `docs.stripe.com` está bloqueado pelo proxy
+> deste sandbox de desenvolvimento, então a integração abaixo foi escrita a
+> partir do padrão consolidado da API do Stripe (Checkout Session + webhook),
+> estável há anos, mas sem conferir contra a documentação atual. Se algo
+> retornar erro ao configurar com suas chaves reais, confira
+> `src/lib/stripe.ts`, `src/app/api/checkout/route.ts` e
+> `src/app/api/webhooks/stripe/route.ts` contra https://docs.stripe.com.
+
+- Sem `STRIPE_SECRET_KEY` configurada, o checkout (`/api/checkout`) continua
+  no modo demonstração: cria `Order` + `Enrollment` na hora, sem cobrar nada
+  de verdade — útil para testar o site sem uma conta Stripe
+- Com a chave configurada, comprar um curso pago cria uma **Stripe Checkout
+  Session** (página de pagamento hospedada pelo próprio Stripe, em reais) e
+  redireciona o aluno para lá. O curso só é liberado quando o Stripe
+  confirma o pagamento — nunca antes
+- Cursos grátis (`price = 0`) ou um cupom que zera o preço continuam
+  liberando o acesso na hora, sem passar pelo Stripe (não faz sentido cobrar
+  R$ 0,00 num gateway de pagamento)
+- A confirmação chega por dois caminhos, ambos reaproveitando a mesma função
+  idempotente (`fulfillCheckoutSession` em `src/lib/checkout-fulfillment.ts`
+  — pode rodar duas vezes sem duplicar nada):
+  1. **Webhook** (`/api/webhooks/stripe`) — o Stripe chama essa rota assim
+     que o pagamento é aprovado; é a fonte de verdade
+  2. **Página de retorno** (`/checkout/[slug]/sucesso`) — quando o Stripe
+     redireciona o aluno de volta, essa página confere o pagamento
+     diretamente com o Stripe como um reforço, caso o webhook ainda não
+     tenha chegado
+
+**Configurar (uma vez só):**
+1. Crie uma conta em https://dashboard.stripe.com (ou use uma já existente)
+2. Em **Desenvolvedores → Chaves de API**, copie a **chave secreta** (comece
+   pelo modo de teste, com chaves que começam em `sk_test_...`) e coloque em
+   `STRIPE_SECRET_KEY` no `.env`
+3. Em **Desenvolvedores → Webhooks**, crie um endpoint apontando para
+   `<sua-url>/api/webhooks/stripe`, escutando pelo menos os eventos
+   `checkout.session.completed` e `checkout.session.async_payment_succeeded`
+   — copie o **signing secret** (`whsec_...`) gerado para
+   `STRIPE_WEBHOOK_SECRET`
+4. Para testar localmente sem expor sua máquina, use a Stripe CLI
+   (`stripe listen --forward-to localhost:3000/api/webhooks/stripe`), que
+   te dá um `whsec_...` de teste na hora
+5. Quando estiver pronto para cobrar de verdade, troque as chaves de teste
+   pelas chaves de produção (`sk_live_...` / webhook de produção) — só isso,
+   o resto do código não muda
+
+**Stripe Tax:** a Checkout Session já pede cálculo automático de imposto
+(`automatic_tax: { enabled: true }`). Para isso funcionar, ative o **Stripe
+Tax** no dashboard (**Configurações → Tax**) e cadastre o endereço de
+origem do seu negócio — sem isso, a criação da sessão de pagamento falha (o
+checkout mostra uma mensagem genérica de erro nesse caso, sem derrubar o
+site). A cobertura do Stripe Tax para tributos brasileiros (ISS e afins)
+não foi conferida aqui — vale revisar com seu contador se o cálculo
+automático atende sua obrigação fiscal ou se prefere desativar
+`automatic_tax` e tratar o imposto por fora.
 
 ## Scripts
 

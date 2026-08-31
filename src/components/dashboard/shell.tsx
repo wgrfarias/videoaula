@@ -3,7 +3,7 @@
 import Link from "next/link";
 import { usePathname } from "next/navigation";
 import { signOut } from "next-auth/react";
-import { BarChart3, BookOpen, DollarSign, LayoutDashboard, LifeBuoy, LogOut, Receipt, Settings, Tag, User, Users, Video } from "lucide-react";
+import { BarChart3, BookOpen, DollarSign, LayoutDashboard, LifeBuoy, LogOut, MessageSquare, Receipt, Settings, Tag, User, Users, Video } from "lucide-react";
 import { cn } from "@/lib/utils";
 import { LogoMark } from "@/components/site/logo";
 import { ThemeToggle } from "@/components/site/theme-toggle";
@@ -20,6 +20,7 @@ const ICONS = {
   receipt: Receipt,
   support: LifeBuoy,
   metrics: BarChart3,
+  comments: MessageSquare,
 } as const;
 
 export type DashboardNavItem = {

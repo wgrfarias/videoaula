@@ -71,13 +71,20 @@ export function CouponCheckout({
     });
     const data = await res.json();
 
-    setPurchasing(false);
-
     if (!res.ok) {
+      setPurchasing(false);
       setPurchaseError(data.error ?? "Não foi possível concluir a compra.");
       return;
     }
 
+    if (data.redirectUrl) {
+      // Off to Stripe's hosted checkout page — stay in "purchasing" state,
+      // there's nothing left to do locally until the browser navigates away.
+      window.location.href = data.redirectUrl;
+      return;
+    }
+
+    setPurchasing(false);
     router.push(`/aluno/cursos/${data.slug}`);
     router.refresh();
   }
