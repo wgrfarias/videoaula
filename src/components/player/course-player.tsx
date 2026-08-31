@@ -134,6 +134,15 @@ export function CoursePlayer({
               allow="accelerometer; autoplay; clipboard-write; encrypted-media; gyroscope; picture-in-picture"
               allowFullScreen
             />
+          ) : currentLesson?.video?.provider === "bunny" ? (
+            <iframe
+              key={currentLesson.id}
+              className="aspect-video w-full"
+              src={currentLesson.video.url}
+              title={currentLesson.title}
+              allow="accelerometer; autoplay; encrypted-media; gyroscope; picture-in-picture"
+              allowFullScreen
+            />
           ) : currentLesson?.videoId ? (
             <video
               key={currentLesson.id}

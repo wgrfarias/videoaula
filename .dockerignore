@@ -1,0 +1,12 @@
+node_modules
+.next
+.git
+.env
+.env*.local
+prisma/dev.db
+public/uploads/*
+!public/uploads/covers/curso-*.svg
+npm-debug.log*
+.DS_Store
+*.md
+e2e-*.mjs

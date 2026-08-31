@@ -2,11 +2,12 @@
 
 import { useState, useTransition } from "react";
 import { useRouter } from "next/navigation";
-import { Library, UploadCloud, SquarePlay } from "lucide-react";
+import { Library, UploadCloud, SquarePlay, Rabbit } from "lucide-react";
 import { Input, FieldError } from "@/components/ui/input";
 import { Button } from "@/components/ui/button";
 import { cn, formatDuration } from "@/lib/utils";
 import { createLesson } from "@/lib/actions/courses";
+import { uploadToBunny } from "@/lib/bunny-client";
 
 type InstructorVideo = {
   id: string;
@@ -35,7 +36,7 @@ export function AddLessonForm({
   videos: InstructorVideo[];
 }) {
   const router = useRouter();
-  const [tab, setTab] = useState<"existing" | "upload" | "youtube">(
+  const [tab, setTab] = useState<"existing" | "upload" | "youtube" | "bunny">(
     videos.length > 0 ? "existing" : "upload"
   );
   const [loading, setLoading] = useState(false);
@@ -142,6 +143,44 @@ export function AddLessonForm({
     }
   }
 
+  async function handleBunnySubmit(e: React.FormEvent<HTMLFormElement>) {
+    e.preventDefault();
+    setError(null);
+    const form = e.currentTarget;
+    const fileInput = form.elements.namedItem("file") as HTMLInputElement;
+    const titleInput = form.elements.namedItem("title") as HTMLInputElement;
+    const file = fileInput.files?.[0];
+
+    if (!file) {
+      setError("Selecione um arquivo de vídeo");
+      return;
+    }
+
+    setLoading(true);
+    try {
+      const durationSec = await readVideoDuration(file);
+      const title = titleInput.value || file.name;
+
+      const res = await fetch("/api/videos/bunny", {
+        method: "POST",
+        headers: { "Content-Type": "application/json" },
+        body: JSON.stringify({ title, durationSec }),
+      });
+      const data = await res.json();
+      if (!res.ok) throw new Error(data.error ?? "Falha ao preparar upload no Bunny.net");
+
+      await uploadToBunny(file, data.tus);
+
+      await createLesson(moduleId, { title, videoId: data.video.id });
+      form.reset();
+      startTransition(() => router.refresh());
+    } catch (err) {
+      setError(err instanceof Error ? err.message : "Erro ao adicionar aula");
+    } finally {
+      setLoading(false);
+    }
+  }
+
   return (
     <div>
       <div className="flex gap-2 text-xs font-semibold">
@@ -175,6 +214,16 @@ export function AddLessonForm({
         >
           <SquarePlay className="h-3.5 w-3.5" /> Link do YouTube
         </button>
+        <button
+          type="button"
+          onClick={() => setTab("bunny")}
+          className={cn(
+            "flex items-center gap-1.5 rounded-full px-3 py-1.5",
+            tab === "bunny" ? "bg-brand-600 text-white" : "bg-surface-alt text-ink-500"
+          )}
+        >
+          <Rabbit className="h-3.5 w-3.5" /> Bunny.net
+        </button>
       </div>
 
       {tab === "existing" ? (
@@ -198,7 +247,7 @@ export function AddLessonForm({
             {loading ? "Adicionando..." : "Adicionar"}
           </Button>
         </form>
-      ) : (
+      ) : tab === "upload" ? (
         <form onSubmit={handleUploadSubmit} className="mt-3 space-y-3">
           <div className="grid gap-3 sm:grid-cols-2">
             <Input name="title" placeholder="Título da aula" />
@@ -213,9 +262,7 @@ export function AddLessonForm({
             {loading ? "Enviando..." : "Enviar e adicionar aula"}
           </Button>
         </form>
-      )}
-
-      {tab === "youtube" && (
+      ) : tab === "youtube" ? (
         <form onSubmit={handleYoutubeSubmit} className="mt-3 space-y-3">
           <div className="grid gap-3 sm:grid-cols-2">
             <Input name="title" placeholder="Título da aula" />
@@ -224,6 +271,21 @@ export function AddLessonForm({
           <Input name="durationSec" type="number" min="0" placeholder="Duração em segundos (opcional)" />
           <Button type="submit" disabled={loading} size="sm">
             {loading ? "Vinculando..." : "Vincular e adicionar aula"}
+          </Button>
+        </form>
+      ) : (
+        <form onSubmit={handleBunnySubmit} className="mt-3 space-y-3">
+          <div className="grid gap-3 sm:grid-cols-2">
+            <Input name="title" placeholder="Título da aula" />
+            <input
+              name="file"
+              type="file"
+              accept="video/mp4,video/webm,video/ogg,video/quicktime"
+              className="block w-full rounded-xl border border-dashed border-ink-300/50 bg-surface px-3 py-2 text-xs text-ink-500 file:mr-3 file:rounded-full file:border-0 file:bg-brand-600 file:px-3 file:py-1.5 file:text-xs file:font-semibold file:text-white"
+            />
+          </div>
+          <Button type="submit" disabled={loading} size="sm">
+            {loading ? "Enviando..." : "Enviar e adicionar aula"}
           </Button>
         </form>
       )}

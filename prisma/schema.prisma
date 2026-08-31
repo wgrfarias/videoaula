@@ -3,11 +3,14 @@ generator client {
 }
 
 datasource db {
-  provider = "sqlite"
+  provider = "postgresql"
   url      = env("DATABASE_URL")
 }
 
-// SQLite has no native enum type, so Role / OrderStatus are plain strings.
+// The schema was originally written for SQLite (hence no native enums —
+// Role / OrderStatus are still plain strings, enforced in app code, see
+// src/lib/constants.ts) and later moved to Postgres for production. Kept
+// as plain strings on migration to avoid a second data-shape change.
 // Valid values are enforced in application code — see src/lib/constants.ts.
 
 model User {

@@ -11,13 +11,17 @@ em código.
 ## Stack
 
 - **Next.js 16** (App Router, Server Actions) + TypeScript + Tailwind CSS v4
-- **Prisma** + SQLite (fácil de trocar por Postgres em produção)
+- **Prisma** + **Postgres**
 - **NextAuth v5** (Credentials + Google OAuth opcional) com sessão JWT e
   controle de papéis (`STUDENT`, `INSTRUCTOR`, `ADMIN`)
 - **next-themes** para o tema claro/escuro (persistido por navegador, com
   opção de seguir o tema do sistema)
-- Upload e streaming de vídeo em disco local, com checagem de matrícula e
-  suporte a HTTP Range (permite avançar o vídeo sem baixar o arquivo todo)
+- Vídeo de aula em três formatos por vídeo: upload em disco local (com
+  streaming protegido e suporte a HTTP Range), link do YouTube, ou upload
+  direto para uma **Video Library do Bunny.net** (recomendado para produção
+  — ver "Vídeos no Bunny.net" abaixo)
+- Deploy como container Docker (`Dockerfile` + `fly.toml` prontos para
+  Fly.io — ver "Deploy no Fly.io" abaixo)
 
 ## Funcionalidades
 
@@ -127,17 +131,21 @@ em código.
   **aplicados**, quantos **converteram em venda** e quantos ficaram como
   **desistência** (cupom aplicado, sem compra), com a taxa de conversão
 
-**Vídeos do YouTube**
-- Ao enviar uma aula (biblioteca de vídeos ou direto no editor de curso) ou
-  o vídeo de destaque da home, dá para colar um link do YouTube em vez de
-  enviar um arquivo — o player incorpora o vídeo do YouTube diretamente
-- Importante: isso não passa pela rota de streaming protegida da
-  plataforma — quem tiver o link do YouTube consegue assistir por lá
-  também, então vale usar vídeos "não listados" para manter algum controle
-  de acesso. A marca d'água de CPF e a barra lateral de progresso continuam
-  funcionando; a marcação automática de "aula concluída" ao terminar o
-  vídeo não funciona para vídeos do YouTube (não há evento de término
-  disponível sem a API do player do YouTube) — dá pra marcar manualmente
+**Vídeos do YouTube e do Bunny.net**
+- Ao enviar uma aula (biblioteca de vídeos ou direto no editor de curso), o
+  professor escolhe entre 4 abas: reaproveitar um vídeo já enviado, enviar
+  um arquivo para o disco da plataforma, colar um link do YouTube, ou
+  enviar direto para o **Bunny.net** (ver seção própria abaixo). O vídeo de
+  destaque da home aceita upload de arquivo ou link do YouTube
+- YouTube: o player incorpora o vídeo diretamente. Importante — isso não
+  passa pela rota de streaming protegida da plataforma, então quem tiver o
+  link do YouTube consegue assistir por lá também; vale usar vídeos "não
+  listados" para manter algum controle de acesso
+- Em ambos os casos (YouTube e Bunny.net), a marca d'água de CPF e a barra
+  lateral de progresso continuam funcionando; a marcação automática de
+  "aula concluída" ao terminar o vídeo só funciona para uploads locais
+  (não há evento de término disponível num `<iframe>` sem a API própria de
+  cada player) — dá pra marcar manualmente nesses casos
 
 **Métricas e analytics**
 - `src/components/analytics/page-view-tracker.tsx`, montado uma vez no
@@ -164,15 +172,22 @@ em código.
 
 ## Rodando localmente
 
+Requer um Postgres rodando — o jeito mais rápido é com Docker:
+
 ```bash
+docker compose up -d        # sobe um Postgres local em localhost:5432
 npm install
-cp .env.example .env        # ajuste os valores se quiser
-npm run db:migrate          # cria o banco SQLite e as tabelas
+cp .env.example .env        # já aponta para o Postgres do docker-compose
+npm run db:migrate          # aplica as migrations do Prisma
 npm run db:seed             # popula com usuários e cursos de exemplo
 npm run dev
 ```
 
 Acesse http://localhost:3000.
+
+Sem Docker, aponte `DATABASE_URL` no `.env` para qualquer Postgres seu
+(local ou um gratuito na nuvem, como [Neon](https://neon.tech) ou
+[Supabase](https://supabase.com)) antes de rodar os mesmos comandos.
 
 ### Contas de demonstração (criadas pelo seed)
 
@@ -207,11 +222,13 @@ próximo módulo, e quatro categorias de chamado já estão cadastradas em
 - `Course` → `Module` → `Lesson` — hierarquia do conteúdo; `Course` também
   tem `discountPercent` (desconto próprio, substitui a promoção geral) e
   `coverTheme` (tema usado pela capa gerada quando não há upload)
-- `Video` — arquivo enviado uma vez (`provider = "upload"`) ou um link do
-  YouTube (`provider = "youtube"`, `url` guarda o link); uma `Lesson` aponta
-  para um `Video`, e o mesmo `Video` pode ser referenciado por `Lesson`s de
-  cursos diferentes (é essa relação que permite reaproveitar aulas em novos
-  produtos)
+- `Video` — três proveniências possíveis: arquivo em disco
+  (`provider = "upload"`), link do YouTube (`provider = "youtube"`, `url`
+  guarda o link) ou vídeo no Bunny.net (`provider = "bunny"`, `filename`
+  guarda o GUID do vídeo na Video Library, `url` guarda a URL de embed já
+  pronta). Uma `Lesson` aponta para um `Video`, e o mesmo `Video` pode ser
+  referenciado por `Lesson`s de cursos diferentes (é essa relação que
+  permite reaproveitar aulas em novos produtos)
 - `Course.bundledCourses` — auto-relação muitos-para-muitos: um curso
   "combo" lista os cursos inteiros que ele inclui. O acesso é resolvido em
   tempo de leitura (`getGrantingCourseIds`/`getEffectiveModules` em
@@ -247,8 +264,9 @@ próximo módulo, e quatro categorias de chamado já estão cadastradas em
   em `src/lib/data/quizzes.ts` decide, a partir dos `QuizAttempt`s com
   `passed = true`, quais módulos aparecem destrancados no player
 
-SQLite não tem enum nativo, então `role` e `status` são strings com os
-valores definidos em `src/lib/constants.ts`.
+`role` e `status` são strings simples (não enums do Postgres), com os
+valores válidos definidos em `src/lib/constants.ts` — assim herdado de
+quando o projeto começou em SQLite, que não tem enum nativo.
 
 ## Tema claro/escuro
 
@@ -291,9 +309,48 @@ a pessoa fizer login pela primeira vez (é só assim que ela aparece na lista).
   assistir (aula grátis, dono do vídeo, ou matrícula ativa no curso da aula)
   antes de servir o arquivo, com suporte a `Range` para o player de vídeo
 
-Em produção, o ideal é trocar o armazenamento em disco por um bucket
-(S3/R2/GCS) — a interface de `Video.url` já foi pensada para isso, bastando
-trocar a implementação das duas rotas acima.
+Isso funciona bem para poucos vídeos pequenos, mas em produção o
+recomendado é hospedar as aulas no Bunny.net (próxima seção) — os uploads
+locais ficam melhor reservados para avatar, capa e vídeo de destaque da
+home, que já usam esse mesmo mecanismo de disco.
+
+## Vídeos no Bunny.net
+
+Bunny Stream faz o upload resumível (arquivos grandes não recomeçam do
+zero se a conexão cair), a conversão para HLS e a entrega via CDN — o
+arquivo vai direto do navegador do professor para o Bunny.net
+(`src/lib/bunny-client.ts`, protocolo TUS via `tus-js-client`), sem passar
+pelo servidor da plataforma.
+
+**Configurar:**
+1. Crie uma conta em [bunny.net](https://bunny.net) e, no painel, vá em
+   **Stream** → **Add Video Library**.
+2. Dentro da Video Library criada, anote o **Library ID** (aparece no topo)
+   e, em **API** → **Video Library API Key**, copie a chave.
+3. Adicione ao `.env` (local) ou como secret do Fly.io (produção):
+   ```bash
+   BUNNY_LIBRARY_ID="123456"
+   BUNNY_API_KEY="sua-chave-aqui"
+   ```
+4. Reinicie o servidor. A aba "Bunny.net" passa a funcionar na biblioteca
+   de vídeos e no editor de curso.
+
+**Como funciona:** o servidor cria o registro do vídeo na Video Library via
+API (`src/lib/bunny.ts`) e devolve ao navegador uma assinatura temporária
+para o upload TUS; o player reproduz o vídeo através do embed do Bunny
+(`https://iframe.mediadelivery.net/embed/{library}/{video}`), guardado
+pronto em `Video.url`. Por padrão o embed não exige token — se quiser
+restringir onde ele pode ser incorporado, ative **Allowed Referrers** nas
+configurações da Video Library e liste o domínio da sua plataforma; isso
+evita que alguém reaproveite o link do vídeo em outro site, sem precisar
+mexer em código.
+
+> A assinatura do upload TUS foi implementada a partir da documentação
+> pública mais difundida do Bunny Stream, mas este ambiente de
+> desenvolvimento não teve acesso à internet para conferir contra a
+> documentação ao vivo no momento da implementação — se o upload falhar
+> com 401, vale conferir os nomes exatos dos campos de metadata TUS em
+> https://docs.bunny.net contra `src/lib/bunny-client.ts`.
 
 ## Pagamento
 
@@ -309,16 +366,78 @@ de liberar a matrícula — o modelo de dados já suporta o fluxo
 - `npm run dev` — ambiente de desenvolvimento
 - `npm run build` / `npm start` — build e execução de produção
 - `npm run lint` — ESLint
-- `npm run db:migrate` — aplica migrations do Prisma
+- `npm run db:migrate` — cria/atualiza migrations do Prisma em desenvolvimento
+- `npm run db:migrate:deploy` — aplica migrations existentes sem gerar novas
+  (o que roda em produção, via `release_command` no `fly.toml`)
 - `npm run db:seed` — popula o banco com dados de demonstração (idempotente)
 - `npm run db:studio` — abre o Prisma Studio para inspecionar o banco
 
-## Observações para deploy
+## Deploy no Fly.io
 
-- Troque `DATABASE_URL` para Postgres/MySQL em produção e rode
-  `npx prisma migrate deploy`.
-- Gere um `AUTH_SECRET` forte (`openssl rand -base64 32`) e ajuste
-  `NEXTAUTH_URL` para o domínio real.
-- Uploads de vídeo em disco exigem um servidor Node.js persistente (não
-  funciona em plataformas serverless com filesystem efêmero) — ou adapte as
-  rotas de upload/streaming para um bucket de objetos.
+O projeto já inclui `Dockerfile` e `fly.toml`. Pressupõe que você já tem
+conta no Fly.io e o `flyctl` instalado e logado (`fly auth login`).
+
+1. **Banco de dados** — crie um Postgres gerenciado pelo Fly (ou use um
+   externo, tipo Neon/Supabase):
+   ```bash
+   fly postgres create --name videoaula-db
+   ```
+   Anote a connection string que o comando mostra no final.
+
+2. **Criar o app** — o `fly.toml` já existe, então só falta registrar o
+   nome do app no Fly (troque `troque-pelo-nome-do-seu-app` no `fly.toml`
+   por um nome único antes):
+   ```bash
+   fly apps create <nome-do-seu-app>
+   ```
+
+3. **Volume para uploads locais** (avatar, capa enviada, vídeo de destaque
+   da home — não os vídeos de aula, que vão para o Bunny.net):
+   ```bash
+   fly volumes create videoaula_uploads --region gru --size 1
+   ```
+   (troque `gru` se usar outra região — mantenha igual ao `primary_region`
+   do `fly.toml`)
+
+4. **Secrets** — nunca vão no `fly.toml`, só como secret:
+   ```bash
+   fly secrets set \
+     DATABASE_URL="postgres://...?sslmode=require" \
+     AUTH_SECRET="$(openssl rand -base64 32)" \
+     NEXTAUTH_URL="https://<nome-do-seu-app>.fly.dev" \
+     BUNNY_LIBRARY_ID="..." \
+     BUNNY_API_KEY="..." \
+     GOOGLE_CLIENT_ID="..." \
+     GOOGLE_CLIENT_SECRET="..."
+   ```
+   (as três últimas são opcionais — omita se não for usar Bunny.net/Google
+   ainda)
+
+5. **Deploy**:
+   ```bash
+   fly deploy
+   ```
+   O `release_command` do `fly.toml` roda `prisma migrate deploy` numa
+   máquina temporária antes de trocar o tráfego para a nova versão — o
+   banco nunca fica desatualizado em relação ao código publicado.
+
+6. **Popular o banco de produção** (opcional, só se quiser os dados de
+   demonstração lá também):
+   ```bash
+   fly ssh console -C "npm run db:seed"
+   ```
+
+**Sobre o volume de uploads:** ele existe numa única máquina física, então
+mantenha `min_machines_running = 1` (já configurado no `fly.toml`) e não
+escale para mais de uma máquina sem antes mover esses uploads para um
+storage externo (Bunny Storage, S3, Cloudflare R2 etc.) — o Postgres em si
+escala normalmente, essa limitação é só do disco local.
+
+## Observações gerais de deploy
+
+- Sempre use HTTPS em produção — `NEXTAUTH_URL` deve refletir o domínio
+  real e `AUTH_SECRET` deve ser um valor forte e único (nunca reaproveite o
+  do `.env.example`).
+- Uploads de vídeo em disco (fora do Bunny.net) exigem um servidor Node.js
+  persistente com armazenamento igualmente persistente — não funciona em
+  plataformas serverless com filesystem efêmero.

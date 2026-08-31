@@ -1,0 +1,15 @@
+services:
+  db:
+    image: postgres:16-alpine
+    restart: unless-stopped
+    environment:
+      POSTGRES_USER: videoaula
+      POSTGRES_PASSWORD: videoaula
+      POSTGRES_DB: videoaula
+    ports:
+      - "5432:5432"
+    volumes:
+      - videoaula-db:/var/lib/postgresql/data
+
+volumes:
+  videoaula-db:
