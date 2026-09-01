@@ -445,15 +445,21 @@ mexer em código.
    pelas chaves de produção (`sk_live_...` / webhook de produção) — só isso,
    o resto do código não muda
 
-**Stripe Tax:** a Checkout Session já pede cálculo automático de imposto
-(`automatic_tax: { enabled: true }`). Para isso funcionar, ative o **Stripe
-Tax** no dashboard (**Configurações → Tax**) e cadastre o endereço de
-origem do seu negócio — sem isso, a criação da sessão de pagamento falha (o
-checkout mostra uma mensagem genérica de erro nesse caso, sem derrubar o
-site). A cobertura do Stripe Tax para tributos brasileiros (ISS e afins)
-não foi conferida aqui — vale revisar com seu contador se o cálculo
-automático atende sua obrigação fiscal ou se prefere desativar
-`automatic_tax` e tratar o imposto por fora.
+**Stripe Tax:** desativado por padrão (`STRIPE_TAX_ENABLED` vazio/ausente no
+`.env`). **Confirmado durante os testes desta integração: o Stripe recusa
+criar a sessão de pagamento inteira com a mensagem "Stripe Tax is not
+supported for your account country" para contas brasileiras** — ou seja,
+hoje o Stripe Tax não está disponível pra a maioria dos negócios no Brasil,
+e deixar ligado por padrão quebraria toda compra paga. Se seu país for
+suportado (veja a lista em
+https://stripe.com/docs/tax/supported-countries), dá pra ativar:
+1. No dashboard, em **Configurações → Tax**, ative o Stripe Tax e cadastre
+   o endereço de origem do seu negócio
+2. No `.env`, defina `STRIPE_TAX_ENABLED="true"`
+
+Sem isso ativado, o preço cobrado é exatamente o mostrado no checkout, sem
+nenhum imposto calculado por cima — trate a parte fiscal (ISS e afins) por
+fora, com seu contador.
 
 ## Scripts
 

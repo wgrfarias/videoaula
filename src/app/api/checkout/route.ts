@@ -143,7 +143,12 @@ export async function POST(request: Request) {
           },
         },
       ],
-      automatic_tax: { enabled: true },
+      // Off by default: Stripe Tax isn't available for every account
+      // country (confirmed unavailable for at least one BR account while
+      // building this) and forcing it on breaks checkout entirely for those
+      // accounts. Set STRIPE_TAX_ENABLED=true once you've confirmed your
+      // Stripe account's country supports it — see README.
+      ...(process.env.STRIPE_TAX_ENABLED === "true" ? { automatic_tax: { enabled: true } } : {}),
       success_url: `${origin}/checkout/${course.slug}/sucesso?session_id={CHECKOUT_SESSION_ID}`,
       cancel_url: `${origin}/checkout/${course.slug}`,
       metadata: {
@@ -153,9 +158,10 @@ export async function POST(request: Request) {
       },
     });
   } catch (error) {
-    // Common causes: invalid/test-vs-live key mismatch, or Stripe Tax
-    // enabled here but not yet configured with an origin address in the
-    // Stripe Dashboard (Settings > Tax) — see README "Pagamento com Stripe".
+    // Common causes: invalid/test-vs-live key mismatch, or (if
+    // STRIPE_TAX_ENABLED=true) Stripe Tax not yet configured with an origin
+    // address in the Dashboard (Settings > Tax), or not supported at all
+    // for your account's country — see README "Pagamento com Stripe".
     const message = error instanceof Error ? error.message : "Erro desconhecido";
     console.error("Stripe checkout session error:", message);
     return NextResponse.json(
