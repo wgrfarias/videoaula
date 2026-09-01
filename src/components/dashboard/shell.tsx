@@ -104,7 +104,7 @@ export function DashboardShell({
         </div>
       </aside>
 
-      <div className="flex-1">
+      <div className="min-w-0 flex-1">
         <header className="border-b border-ink-900/5 bg-surface px-5 py-4 md:hidden">
           <div className="flex items-center justify-between">
             <span className="flex items-center gap-2 font-display font-bold text-ink-900">
